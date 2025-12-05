@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roadmap Arena BRB</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: Arial, sans-serif; 
+      background: linear-gradient(135deg, #EBF4FF 0%, #D6E8FF 100%); 
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container { max-width: 1800px; margin: 0 auto; }
+    
+    /* Header */
+    .header { 
+      background: linear-gradient(135deg, #4324C4 0%, #0E76E0 100%); 
+      border-radius: 10px; 
+      padding: 30px; 
+      margin-bottom: 30px; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+      display: flex; 
+      align-items: center; 
+      gap: 20px; 
+    }
+    .header img { height: 50px; }
+    .header-text { flex: 1; }
+    .header h1 { font-size: 36px; color: #ffffff; margin-bottom: 10px; }
+    .header p { color: #ffffff; opacity: 0.9; font-size: 16px; }
+    
+    /* Mensagem de salvamento */
+    .save-message {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      border-radius: 8px;
+      font-weight: bold;
+      z-index: 1000;
+      display: none;
+      animation: slideIn 0.3s ease-out;
+    }
+    .save-message.success { background: #D1FAE5; color: #065F46; }
+    .save-message.error { background: #FEE2E2; color: #991B1B; }
+    @keyframes slideIn {
+      from { transform: translateX(400px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    /* Stats */
+    .stats { 
+      display: grid; 
+      grid-template-columns: repeat(2, 1fr); 
+      gap: 20px; 
+      margin-bottom: 30px; 
+    }
+    .stat-card { 
+      background: white; 
+      border-radius: 10px; 
+      padding: 30px; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    }
+    .stat-value { font-size: 40px; font-weight: bold; color: #0E76E0; }
+    .stat-label { color: #6B7280; font-size: 14px; margin-bottom: 10px; }
+    
+    /* Total card */
+    .total-card { 
+      background: linear-gradient(135deg, #4324C4 0%, #0E76E0 100%); 
+      color: white; 
+      border-radius: 10px; 
+      padding: 40px; 
+      text-align: center; 
+      margin-bottom: 30px; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    }
+    .total-card-value { font-size: 60px; font-weight: bold; margin: 10px 0; }
+    
+    /* Section */
+    .section { 
+      background: white; 
+      border-radius: 10px; 
+      padding: 30px; 
+      margin-bottom: 30px; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    }
+    .section-title { 
+      font-size: 24px; 
+      font-weight: bold; 
+      color: #1F2937; 
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    /* Botões */
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+    .btn:hover { opacity: 0.9; transform: scale(1.05); }
+    .btn-primary { background: #0E76E0; color: white; }
+    .btn-secondary { background: #4324C4; color: white; }
+    .btn-success { background: #10B981; color: white; }
+    
+    /* Roadmap */
+    .roadmap-container { overflow-x: auto; }
+    .roadmap { min-width: 1600px; }
+    .roadmap-header { 
+      display: flex; 
+      border-bottom: 2px solid #D1D5DB; 
+      padding-bottom: 10px; 
+      margin-bottom: 20px; 
+    }
+    .roadmap-header-label { 
+      width: 144px; 
+      font-weight: bold; 
+      font-size: 14px; 
+      color: #374151; 
+    }
+    .roadmap-header-months { flex: 1; display: flex; }
+    .roadmap-month { 
+      flex: 1; 
+      text-align: center; 
+      border-left: 1px solid #D1D5DB; 
+      padding: 0 10px; 
+    }
+    .roadmap-month-name { font-size: 18px; font-weight: bold; color: #1F2937; }
+    .roadmap-month-year { font-size: 14px; color: #6B7280; }
+    
+    /* Projeto row */
+    .projeto-row { display: flex; margin-bottom: 15px; position: relative; }
+    .projeto-label { 
+      width: 144px; 
+      padding: 12px; 
+      border-radius: 6px; 
+      font-size: 12px; 
+      font-weight: bold; 
+      display: flex; 
+      align-items: center; 
+      margin-right: 8px;
+      position: relative;
+    }
+    .projeto-actions {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      display: flex;
+      gap: 5px;
+    }
+    .projeto-actions button {
+      background: rgba(255,255,255,0.8);
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .projeto-actions button:hover { background: white; }
+    
+    .projeto-timeline { 
+      flex: 1; 
+      position: relative; 
+      border-left: 1px solid #D1D5DB; 
+      min-height: 65px; 
+    }
+    .month-divider { 
+      position: absolute; 
+      top: 0; 
+      bottom: 0; 
+      border-right: 1px solid #E5E7EB; 
+    }
+    
+    /* Tarefa */
+    .tarefa { 
+      position: absolute; 
+      height: 48px; 
+      border-radius: 6px; 
+      padding: 0 10px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      font-size: 12px; 
+      font-weight: bold; 
+      color: #1F2937; 
+      border: 3px solid rgba(0,0,0,0.15); 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+      top: 8px;
+      cursor: move;
+      user-select: none;
+    }
+    .tarefa:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    .tarefa-nome { 
+      flex: 1; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+      white-space: nowrap; 
+    }
+    .tarefa-percent { 
+      font-weight: bold; 
+      margin-left: 8px;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .tarefa-percent:hover { background: rgba(255,255,255,0.5); }
+    .tarefa-actions {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      display: none;
+      gap: 4px;
+    }
+    .tarefa:hover .tarefa-actions { display: flex; }
+    .tarefa-actions button {
+      background: #EF4444;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.show { display: flex; }
+    .modal-content {
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+    }
+    .modal-title { font-size: 24px; font-weight: bold; margin-bottom: 20px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { 
+      display: block; 
+      margin-bottom: 8px; 
+      font-weight: bold; 
+      color: #374151;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #D1D5DB;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .modal-actions button { flex: 1; }
+    
+    /* Botões flutuantes */
+    .floating-buttons {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 999;
+    }
+    .floating-btn {
+      padding: 15px 25px;
+      border: none;
+      border-radius: 50px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .floating-btn:hover { transform: scale(1.1); }
+    
+    @media print {
+      .floating-buttons, .btn, .projeto-actions, .tarefa-actions { display: none !important; }
+      @page { size: landscape; margin: 1cm; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="saveMessage" class="save-message"></div>
+  
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iOTcuNzExIiBoZWlnaHQ9IjQzLjA1IiB2aWV3Qm94PSIwIDAgOTcuNzExIDQzLjA1Ij4KICA8ZGVmcz4KICAgIDxjbGlwUGF0aCBpZD0iYSI+CiAgICAgIDxyZWN0IHdpZHRoPSI5Ny43MTEiIGhlaWdodD0iNDMuMDUiIGZpbGw9Im5vbmUiPjwvcmVjdD4KICAgIDwvY2xpcFBhdGg+CiAgPC9kZWZzPgogIDxnIGNsaXAtcGF0aD0idXJsKCNhKSI+CiAgICA8cGF0aCBkPSJNMTMuNDY5LDU2LjUyNGwtLjQxNywyLjY2MmEyOS4zMTcsMjkuMzE3LDAsMCwxLDE1LjIzLDguMzYybDYuMDgxLTMuOTkzcy43LS40NzMsMS4wMjgtLjA3N2MwLDAsLjMxOS4zMDgtLjI5Mi45NjdsLTQuOTk0LDUuMTc5YTI5LjE5MSwyOS4xOTEsMCwwLDEsNi4zMTgsMTUuNzI0aDIuODQ2bDQuNTA5LTI4LjgyNloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC05Ljc2OCAtNDIuMykiIGZpbGw9IiNmZmYiPjwvcGF0aD4KICAgIDxwYXRoIGQ9Ik0xNDkuMTA2LDY4LjMwOEgxNDUuNDhsMS4xODktNy40OTJoNC4xYzIuMzYyLDAsMi43Ny4yMTcsMy4xMzQuNzEyYTIuNjQzLDIuNjQzLDAsMCwxLC40NDUsMS42NjMsNC45LDQuOSwwLDAsMS01LjI0MSw1LjExN20yLjQ3MSwxMS44ODJjLTEuMDMuNzA4LTEuNzA3LjkxNC00LjIxNS45MTRoLTMuODhsMS4yOC04LjI4MWg0LjA5NWMzLjk1OSwwLDQuNDkzLDEuNzQ4LDQuNDkzLDMuNDU2YTQuNiw0LjYsMCwwLDEtMS43NzMsMy45MTFtMy4zODYtMTBhOC4yNzcsOC4yNzcsMCwwLDAsNC40ODItNy4zMzQsNi4xNzEsNi4xNzEsMCwwLDAtMS43LTQuNDgzYy0xLjI4Mi0xLjMyOC0yLjgzNy0xLjgyNS01LjczMS0xLjgyNWgtOS40ODdsLS4wOTIuNTg5LTMuNywyMy40NzZjLS4yNzIsMS43MTYtLjA0NSw0LjczNywzLjczLDQuNzUxdjBoNi41MTlhOSw5LDAsMCwwLDkuNDIzLTkuMzgxLDYuMTE2LDYuMTE2LDAsMCwwLTMuNDQxLTUuOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEwMy43NjQgLTQyLjMyMSkiIGZpbGw9IiNmZmYiPjwvcGF0aD4KICAgIDxwYXRoIGQ9Ik0yMjguODY1LDY5LjM0OGwxLjM1Ni04LjUzMmgzLjg1YzMuNTUzLDAsNC4yLjk1NCw0LjIsMi44MzNhNS40MzYsNS40MzYsMCwwLDEtNS43ODMsNS43Wm02LjkzNywzLjYzNGE5LjQ1Miw5LjQ1MiwwLDAsMCw3LjMxOS05LjMzM2MwLTQuNTc3LTIuODU5LTcuMS04LjA1Mi03LjFoLTguOTkybC0uMDkyLjU5Mi0zLjgsMjQuMzg1Yy0uMTY5LDEuMjQ5LTEuMTEzLDMuODQzLDMuNDE5LDMuODQxbC40MzcsMGguMzE3bC4wOTQtLjU5MiwxLjczNi0xMS4xNjZoMi42MThsNS41NDIsMTEuMzY1LjE5Mi4zOTRoNS40NzZsLS41MDgtMS4wMTNaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTY2LjEzMiAtNDIuMzIxKSIgZmlsbD0iI2ZmZiI+PC9wYXRoPgogICAgPHBhdGggZD0iTTMxNi4xODksNjguMzA4aC0zLjYyN2wxLjE5MS03LjQ5Mmg0LjFjMi4zNjMsMCwyLjc3LjIxNywzLjEzNC43MTJhMi42NDksMi42NDksMCwwLDEsLjQ0NiwxLjY2Myw0LjksNC45LDAsMCwxLTUuMjQyLDUuMTE3bTIuNDcsMTEuODgyYy0xLjAyOC43MDgtMS43MDYuOTE0LTQuMjE0LjkxNGgtMy44NzlsMS4yNzktOC4yODFoNC4wOTRjMy45NjEsMCw0LjQ5NSwxLjc0OCw0LjQ5NSwzLjQ1NmE0LjYsNC42LDAsMCwxLTEuNzc0LDMuOTExbTMuMzg2LTEwYTguMjc2LDguMjc2LDAsMCwwLDQuNDgxLTcuMzM0LDYuMTY3LDYuMTY3LDAsMCwwLTEuNy00LjQ4M2MtMS4yODItMS4zMjktMi44MzgtMS44MjUtNS43MzEtMS44MjVoLTkuNDg5bC0uMDkyLjU5LTMuNjkyLDIzLjQyNGMtLjI0NCwxLjctLjA4OCw0Ljc4NywzLjcyNSw0Ljh2MGg2LjUxNmE5LDksMCwwLDAsOS40MjUtOS4zODEsNi4xMTQsNi4xMTQsMCwwLDAtMy40NDQtNS43OTUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMjguODE2IC00Mi4zMjEpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNOS41MjQsOTQuNjE1bC0uMjc4LS4zMzYsNi41LTcuMzA2QTI2LjA0OSwyNi4wNDksMCwwLDAsMi43NzgsNzkuOTg1TC4xMjcsOTYuOTI4Yy0uNDYyLDMuMTc3LjExNSw1Ljk3OCw1LjQxMSw1Ljk3OEgyMy4zNjZhMjUuOTM5LDI1LjkzOSwwLDAsMC01LjMyNy0xMy4zNTlaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC01OS44NTkpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNMTYyLjY2MS4wODcsMTU3LjU0LDkuMDY2YS43MjguNzI4LDAsMCwwLC42MzMsMS4wOWguMmwxLjM1Ni0yLjM5MWg0LjEwOWwuMzUsMi4zOTFoMS40MUwxNjQuMTIyLjA4N1ptLjQ3OSwyLjYwNy41NzksMy45MzloLTMuMzkzbDIuMjM2LTMuOTI3Yy4xODEtLjMwOS4zMy0uNi40NzctLjkwOS4wMjYuMy4wNi42LjEuOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTExNy44MjYgLTAuMDY1KSIgZmlsbD0iI2ZmZiI+PC9wYXRoPgogICAgPHBhdGggZD0iTTM1OS43NTgsOS45NTgsMzU4LjMzMi4yMzRhLjE3My4xNzMsMCwwLDAtLjE3LS4xNDdoLTEuMjEzYS4xNzMuMTczLDAsMCwwLS4xNDkuMDg3bC01LjAyMSw4LjhhLjc4OC43ODgsMCwwLDAsLjY4NCwxLjE3OC4xNzMuMTczLDAsMCwwLC4xNS0uMDg3bDEuMzA2LTIuM2g0LjEwOWwuMzI4LDIuMjQ0YS4xNzMuMTczLDAsMCwwLC4xNy4xNDdoMS4wNjJhLjE3Mi4xNzIsMCwwLDAsLjE3LS4ybS0yLjQzLTcuMjY0LjU3OSwzLjkzOWgtMy4zOTNsMi4yMzYtMy45MjdjLjE4MS0uMzA5LjMzLS42LjQ3Ny0uOTA5LjAyNi4zLjA2LjYuMS45IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjYzLjE4MyAtMC4wNjUpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNMjIwLjA3NSwyLjE4NWMwLS44MTYtLjQtMi4xODQtMy4wNzMtMi4xODQtLjk2NSwwLTEuODA5LjAxNS0yLjQ0LjA0NGwtLjA4NywwLTEuOTE2LDkuMDQzYS44NDUuODQ1LDAsMCwwLC44MjcsMS4wMjFoLjMxbC45NjItNC41MzVoLjE1MWwyLjc0MSw0LjUzNWgxLjYzOWwtMi4zNy0zLjc2MS0uMjMyLS4zNjljLS4xLS4xNjYtLjIxMS0uMzM3LS4zMTctLjUsMi4yNS0uMTM0LDMuOC0xLjQ3LDMuOC0zLjNtLTEuMzkzLjE0NmMwLDEuMy0xLjE1NiwyLjE3Ni0yLjg3NiwyLjE3Ni0uMzM3LDAtLjcxMy0uMDEtLjkyNi0uMDJsLjcxMy0zLjMzM2MuMjk0LS4wMjMuNzIxLS4wMzYsMS4yMTktLjAzNiwxLjI1OCwwLDEuODcuNCwxLjg3LDEuMjE0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTU5LjA1OSAtMC4wMDEpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNMjYwLjQ4LDEuMjE3aDQuMTdsLjIzNy0xLjEzaC01LjUyNGwtMS45MDgsOS4wMDhhLjg3OC44NzgsMCwwLDAsLjg1OSwxLjA2aDQuNDQxTDI2Mi45OTEsOWgtNC4xNjhsLjc1My0zLjQ2M2gzLjk4MWwuMjM3LTEuMTNoLTMuOThaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTkyLjY1OCAtMC4wNjUpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNMzA3Ljc2Mi4wODdsLS41ODgsMi43ODdjLS4zNCwxLjYwNi0uNzYsMy44MTMtMS4wMTIsNS4xOTUtLjEyOS0uNTIxLS4yODYtMS4wNjctLjQ2MS0xLjZMMzAzLjc2OC4wODdoLTEuNTc2bC0xLjg4Niw4LjlhLjk2NS45NjUsMCwwLDAsLjk0NCwxLjE2NWguMWwuNjc2LTMuMTA5Yy4yOTUtMS40MzYuNzIyLTMuNjI4Ljk1OC00Ljk0Mi4xMjMuNDgxLjI0Ny45MS40MTIsMS40MzhsMS45NzgsNi42MTNoMS41NjFMMzA5LjA3My4wODdaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjI0LjcyNSAtMC4wNjUpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgPC9nPgo8L3N2Zz4K" alt="Arena BRB Logo">
+      <div class="header-text">
+        <h1>Roadmap Arena BRB</h1>
+        <p>Set/2025 - Mar/2026</p>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Projetos em Execução</div>
+        <div class="stat-value" id="statProjetos">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pipeline de Projetos</div>
+        <div class="stat-value" id="statPipeline">0</div>
+      </div>
+    </div>
+
+    <!-- Total -->
+    <div class="total-card">
+      <div style="font-size: 18px; opacity: 0.9;">Total Geral de Projetos</div>
+      <div class="total-card-value" id="statTotal">0</div>
+      <div style="font-size: 14px; opacity: 0.8;"><span id="statTotalDesc">0 em execução + 0 em pipeline</span></div>
+    </div>
+
+    <!-- Projetos em Execução -->
+    <div class="section">
+      <div class="section-title">
+        <span>📊 Projetos em Execução</span>
+        <button class="btn btn-primary" onclick="abrirModalNovoProjeto(true)">+ Novo Projeto</button>
+      </div>
+      <div class="roadmap-container">
+        <div class="roadmap" id="roadmapProjetos"></div>
+      </div>
+    </div>
+
+    <!-- Pipeline -->
+    <div class="section">
+      <div class="section-title">
+        <span>🚀 Pipeline</span>
+        <button class="btn btn-secondary" onclick="abrirModalNovoProjeto(false)">+ Novo Projeto</button>
+      </div>
+      <div class="roadmap-container">
+        <div class="roadmap" id="roadmapPipeline"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botões Flutuantes -->
+  <div class="floating-buttons">
+    <button class="floating-btn btn-success" onclick="window.print()">
+      📥 EXPORTAR PDF
+    </button>
+  </div>
+
+  <!-- Modal Nova Tarefa -->
+  <div id="modalTarefa" class="modal">
+    <div class="modal-content">
+      <h2 class="modal-title">Nova Tarefa</h2>
+      <div class="form-group">
+        <label>Nome da Tarefa</label>
+        <input type="text" id="inputTarefaNome" placeholder="Digite o nome da tarefa">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="adicionarTarefa()">Adicionar</button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick="fecharModal('modalTarefa')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Novo Projeto -->
+  <div id="modalProjeto" class="modal">
+    <div class="modal-content">
+      <h2 class="modal-title">Novo Projeto</h2>
+      <div class="form-group">
+        <label>Nome do Projeto</label>
+        <input type="text" id="inputProjetoNome" placeholder="Digite o nome do projeto">
+      </div>
+      <div class="form-group">
+        <label>Cor</label>
+        <input type="color" id="inputProjetoCor" value="#FEF3C7">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="adicionarProjeto()">Adicionar</button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick="fecharModal('modalProjeto')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Editar Percentual -->
+  <div id="modalPercentual" class="modal">
+    <div class="modal-content">
+      <h2 class="modal-title">Editar Progresso</h2>
+      <div class="form-group">
+        <label>Percentual de Conclusão (%)</label>
+        <input type="number" id="inputPercentual" min="0" max="100" placeholder="0-100">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="salvarPercentual()">Salvar</button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick="fecharModal('modalPercentual')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+  <script>
+    // ========================================
+    // CONFIGURAÇÃO DO FIREBASE
+    // ========================================
+    // INSTRUÇÕES: Substitua os valores abaixo com suas credenciais do Firebase
+    // 1. Acesse https://console.firebase.google.com/
+    // 2. Crie um novo projeto ou use um existente
+    // 3. Vá em Configurações do Projeto > Seus Aplicativos > SDK
+    // 4. Copie as credenciais e cole aqui
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyDIoRUQYh7N6eAfCxmx5ToN4-LL519hip8",
+        authDomain: "roadmap-arena-brb.firebaseapp.com",
+        databaseURL: "https://roadmap-arena-brb-default-rtdb.firebaseio.com",
+         projectId: "roadmap-arena-brb",
+       storageBucket: "roadmap-arena-brb.firebasestorage.app",
+      messagingSenderId: "497663406664",
+        appId: "1:497663406664:web:22c9aef77aec1e26edde7d"
+    };
+
+    // Inicializar Firebase
+    let app, database;
+    try {
+      app = firebase.initializeApp(firebaseConfig);
+      database = firebase.database();
+      console.log('✅ Firebase conectado com sucesso!');
+    } catch (error) {
+      console.error('❌ Erro ao conectar Firebase:', error);
+      alert('⚠️ Configure o Firebase! Veja as instruções no código fonte.');
+    }
+
+    // ========================================
+    // DADOS E ESTADO
+    // ========================================
+    const meses = [
+      { label: 'Set', ano: 2025 }, { label: 'Out', ano: 2025 },
+      { label: 'Nov', ano: 2025 }, { label: 'Dez', ano: 2025 },
+      { label: 'Jan', ano: 2026 }, { label: 'Fev', ano: 2026 },
+      { label: 'Mar', ano: 2026 }
+    ];
+
+    let projetos = [];
+    let pipeline = [];
+    let projetoSelecionado = null;
+    let tarefaSelecionada = null;
+    let isProjetoList = true;
+
+    // ========================================
+    // FUNÇÕES FIREBASE
+    // ========================================
+    function sincronizarComFirebase() {
+      if (!database) return;
+      
+      const roadmapRef = database.ref('roadmap');
+      roadmapRef.set({
+        projetos: projetos,
+        pipeline: pipeline,
+        ultimaAtualizacao: new Date().toISOString()
+      }).then(() => {
+        mostrarMensagem('✅ Sincronizado com sucesso!', 'success');
+      }).catch((error) => {
+        mostrarMensagem('❌ Erro ao sincronizar', 'error');
+        console.error('Erro:', error);
+      });
+    }
+
+    function carregarDoFirebase() {
+      if (!database) {
+        carregarDadosIniciais();
+        return;
+      }
+      
+      const roadmapRef = database.ref('roadmap');
+      roadmapRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          projetos = data.projetos || [];
+          pipeline = data.pipeline || [];
+        } else {
+          carregarDadosIniciais();
+        }
+        renderizar();
+      });
+    }
+
+    function carregarDadosIniciais() {
+      projetos = [
+        { id: Date.now() + 1, nome: "WiFi Staff", cor: "#D1FAE5", tarefas: [] },
+        { id: Date.now() + 2, nome: "CFTV GNN", cor: "#CCFBF1", tarefas: [] },
+        { id: Date.now() + 3, nome: "Catracas - GNN", cor: "#E0E7FF", tarefas: [] }
+      ];
+      pipeline = [
+        { id: Date.now() + 4, nome: "FIFA - Adequação PTA2", cor: "#E9D5FF", tarefas: [] },
+        { id: Date.now() + 5, nome: "Cabeamento Estruturado", cor: "#CCFBF1", tarefas: [] }
+      ];
+      sincronizarComFirebase();
+    }
+
+    // ========================================
+    // FUNÇÕES DE UI
+    // ========================================
+    function mostrarMensagem(texto, tipo) {
+      const msg = document.getElementById('saveMessage');
+      msg.textContent = texto;
+      msg.className = `save-message ${tipo}`;
+      msg.style.display = 'block';
+      setTimeout(() => {
+        msg.style.display = 'none';
+      }, 3000);
+    }
+
+    function getCorPorPercentual(percentual) {
+      if (percentual <= 50) {
+        const ratio = percentual / 50;
+        const g = Math.round(107 + (210 - 107) * ratio);
+        const b = Math.round(53 + (63 - 53) * ratio);
+        return `rgb(255, ${g}, ${b})`;
+      } else {
+        const ratio = (percentual - 50) / 50;
+        const r = Math.round(255 - (255 - 16) * ratio);
+        const g = Math.round(210 - (210 - 185) * ratio);
+        const b = Math.round(63 + (129 - 63) * ratio);
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+    }
+
+    function renderizar() {
+      renderizarStats();
+      renderizarRoadmap('roadmapProjetos', projetos, true);
+      renderizarRoadmap('roadmapPipeline', pipeline, false);
+    }
+
+    function renderizarStats() {
+      document.getElementById('statProjetos').textContent = projetos.length;
+      document.getElementById('statPipeline').textContent = pipeline.length;
+      document.getElementById('statTotal').textContent = projetos.length + pipeline.length;
+      document.getElementById('statTotalDesc').textContent = 
+        `${projetos.length} em execução + ${pipeline.length} em pipeline`;
+    }
+
+    function renderizarRoadmap(containerId, data, isProjetos) {
+      const container = document.getElementById(containerId);
+      
+      let html = `
+        <div class="roadmap-header">
+          <div class="roadmap-header-label">PROJETO</div>
+          <div class="roadmap-header-months">
+            ${meses.map(mes => `
+              <div class="roadmap-month">
+                <div class="roadmap-month-name">${mes.label}</div>
+                <div class="roadmap-month-year">${mes.ano}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      data.forEach(projeto => {
+        const altura = Math.max(65, (projeto.tarefas.length * 50) + 15);
+        html += `
+          <div class="projeto-row">
+            <div class="projeto-label" style="background-color: ${projeto.cor}; min-height: ${altura}px;">
+              <span style="flex: 1;">${projeto.nome}</span>
+              <div class="projeto-actions">
+                <button onclick="editarProjeto(${projeto.id}, ${isProjetos})">✏️</button>
+                <button onclick="removerProjeto(${projeto.id}, ${isProjetos})">🗑️</button>
+              </div>
+            </div>
+            <div class="projeto-timeline" style="min-height: ${altura}px;">
+              ${meses.map((_, idx) => `
+                <div class="month-divider" style="left: ${(idx / meses.length) * 100}%; width: ${100 / meses.length}%;"></div>
+              `).join('')}
+              ${projeto.tarefas.map((tarefa, idx) => `
+                <div class="tarefa" style="
+                  background-color: ${getCorPorPercentual(tarefa.percentualEntrega)};
+                  left: ${tarefa.posicaoInicio}%;
+                  width: ${tarefa.largura}%;
+                  top: ${idx * 50 + 8}px;
+                ">
+                  <span class="tarefa-nome">${tarefa.nome}</span>
+                  <span class="tarefa-percent" onclick="editarPercentual(${projeto.id}, ${tarefa.id}, ${isProjetos})">${tarefa.percentualEntrega}%</span>
+                  <div class="tarefa-actions">
+                    <button onclick="removerTarefa(${projeto.id}, ${tarefa.id}, ${isProjetos})">×</button>
+                  </div>
+                </div>
+              `).join('')}
+              <button class="btn ${isProjetos ? 'btn-primary' : 'btn-secondary'}" 
+                      style="position: absolute; top: 8px; right: 8px; padding: 5px 10px; font-size: 12px;"
+                      onclick="abrirModalTarefa(${projeto.id}, ${isProjetos})">
+                + Tarefa
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // ========================================
+    // FUNÇÕES DE CRUD
+    // ========================================
+    function abrirModalNovoProjeto(isProjetos) {
+      isProjetoList = isProjetos;
+      document.getElementById('inputProjetoNome').value = '';
+      document.getElementById('inputProjetoCor').value = '#FEF3C7';
+      document.getElementById('modalProjeto').classList.add('show');
+    }
+
+    function adicionarProjeto() {
+      const nome = document.getElementById('inputProjetoNome').value.trim();
+      const cor = document.getElementById('inputProjetoCor').value;
+      
+      if (!nome) {
+        alert('Digite um nome para o projeto!');
+        return;
+      }
+
+      const novoProjeto = {
+        id: Date.now(),
+        nome: nome,
+        cor: cor,
+        tarefas: []
+      };
+
+      if (isProjetoList) {
+        projetos.push(novoProjeto);
+      } else {
+        pipeline.push(novoProjeto);
+      }
+
+      sincronizarComFirebase();
+      fecharModal('modalProjeto');
+    }
+
+    function removerProjeto(id, isProjetos) {
+      if (!confirm('Deseja realmente remover este projeto?')) return;
+      
+      if (isProjetos) {
+        projetos = projetos.filter(p => p.id !== id);
+      } else {
+        pipeline = pipeline.filter(p => p.id !== id);
+      }
+      sincronizarComFirebase();
+    }
+
+    function abrirModalTarefa(projetoId, isProjetos) {
+      projetoSelecionado = projetoId;
+      isProjetoList = isProjetos;
+      document.getElementById('inputTarefaNome').value = '';
+      document.getElementById('modalTarefa').classList.add('show');
+    }
+
+    function adicionarTarefa() {
+      const nome = document.getElementById('inputTarefaNome').value.trim();
+      
+      if (!nome) {
+        alert('Digite um nome para a tarefa!');
+        return;
+      }
+
+      const novaTarefa = {
+        id: Date.now(),
+        nome: nome,
+        posicaoInicio: 0,
+        largura: 25,
+        percentualEntrega: 0
+      };
+
+      const data = isProjetoList ? projetos : pipeline;
+      const projeto = data.find(p => p.id === projetoSelecionado);
+      if (projeto) {
+        projeto.tarefas.push(novaTarefa);
+        sincronizarComFirebase();
+      }
+
+      fecharModal('modalTarefa');
+    }
+
+    function removerTarefa(projetoId, tarefaId, isProjetos) {
+      if (!confirm('Deseja realmente remover esta tarefa?')) return;
+      
+      const data = isProjetos ? projetos : pipeline;
+      const projeto = data.find(p => p.id === projetoId);
+      if (projeto) {
+        projeto.tarefas = projeto.tarefas.filter(t => t.id !== tarefaId);
+        sincronizarComFirebase();
+      }
+    }
+
+    function editarPercentual(projetoId, tarefaId, isProjetos) {
+      projetoSelecionado = projetoId;
+      tarefaSelecionada = tarefaId;
+      isProjetoList = isProjetos;
+      
+      const data = isProjetos ? projetos : pipeline;
+      const projeto = data.find(p => p.id === projetoId);
+      const tarefa = projeto?.tarefas.find(t => t.id === tarefaId);
+      
+      if (tarefa) {
+        document.getElementById('inputPercentual').value = tarefa.percentualEntrega;
+        document.getElementById('modalPercentual').classList.add('show');
+      }
+    }
+
+    function salvarPercentual() {
+      const percentual = parseInt(document.getElementById('inputPercentual').value) || 0;
+      
+      if (percentual < 0 || percentual > 100) {
+        alert('O percentual deve estar entre 0 e 100!');
+        return;
+      }
+
+      const data = isProjetoList ? projetos : pipeline;
+      const projeto = data.find(p => p.id === projetoSelecionado);
+      const tarefa = projeto?.tarefas.find(t => t.id === tarefaSelecionada);
+      
+      if (tarefa) {
+        tarefa.percentualEntrega = percentual;
+        sincronizarComFirebase();
+      }
+
+      fecharModal('modalPercentual');
+    }
+
+    function fecharModal(modalId) {
+      document.getElementById(modalId).classList.remove('show');
+    }
+
+    // Fechar modal ao clicar fora
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('show');
+        }
+      });
+    });
+
+    // ========================================
+    // INICIALIZAÇÃO
+    // ========================================
+    window.addEventListener('DOMContentLoaded', () => {
+      carregarDoFirebase();
+    });
+  </script>
+</body>
+</html>
