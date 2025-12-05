@@ -195,6 +195,53 @@
       color: #1F2937;
       border: 2px solid rgba(0,0,0,0.1);
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      cursor: move;
+      user-select: none;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    
+    .tarefa-box:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      transform: translateY(-2px);
+      z-index: 10;
+    }
+    
+    .tarefa-box.dragging {
+      opacity: 0.7;
+      z-index: 100;
+      cursor: grabbing;
+    }
+    
+    .resize-handle {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 10px;
+      cursor: ew-resize;
+      background: rgba(0,0,0,0.05);
+      border-radius: 0 4px 4px 0;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .tarefa-box:hover .resize-handle {
+      opacity: 1;
+    }
+    
+    .resize-handle:hover {
+      background: rgba(0,0,0,0.15);
+    }
+    
+    .drag-icon {
+      opacity: 0.4;
+      margin-right: 6px;
+      flex-shrink: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .tarefa-box:hover .drag-icon {
+      opacity: 0.8;
     }
     
     /* Modal */
@@ -520,9 +567,15 @@
               <div class="projeto-timeline" style="min-height: ${h}px;">
                 ${meses.map((_, i) => `<div class="mes-col" style="left: ${i*100/meses.length}%; width: ${100/meses.length}%;"></div>`).join('')}
                 ${(p.tarefas||[]).map((t, i) => `
-                  <div class="tarefa-box" style="background: ${getCorPorPercentual(t.percentualEntrega||0)}; left: ${t.posicaoInicio||0}%; width: ${t.largura||25}%; top: ${i*60+10}px;">
-                    <span style="flex: 1; overflow: hidden; text-overflow: ellipsis;">${t.nome}</span>
-                    <span onclick="editarPercentual(${p.id}, ${t.id}, ${isProjetos})" style="cursor: pointer; padding: 5px 10px; background: rgba(255,255,255,0.3); border-radius: 4px;">${t.percentualEntrega||0}%</span>
+                  <div class="tarefa-box" data-projeto-id="${p.id}" data-tarefa-id="${t.id}" data-is-projetos="${isProjetos}" style="background: ${getCorPorPercentual(t.percentualEntrega||0)}; left: ${t.posicaoInicio||0}%; width: ${t.largura||25}%; top: ${i*60+10}px;">
+                    <svg class="drag-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="4" y1="8" x2="20" y2="8"></line>
+                      <line x1="4" y1="16" x2="20" y2="16"></line>
+                    </svg>
+                    <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px;">${t.nome}</span>
+                    <span onclick="editarPercentual(${p.id}, ${t.id}, ${isProjetos})" style="cursor: pointer; padding: 5px 10px; background: rgba(255,255,255,0.3); border-radius: 4px; font-weight: 700; flex-shrink: 0;">${t.percentualEntrega||0}%</span>
+                    <div class="resize-handle" data-projeto-id="${p.id}" data-tarefa-id="${t.id}" data-is-projetos="${isProjetos}"></div>
+                    <button onclick="event.stopPropagation(); removerTarefa(${p.id}, ${t.id}, ${isProjetos})" style="position: absolute; top: -10px; right: -10px; width: 24px; height: 24px; border-radius: 50%; border: none; background: #EF4444; color: white; cursor: pointer; font-size: 16px; font-weight: bold; display: none; box-shadow: 0 2px 6px rgba(0,0,0,0.3); align-items: center; justify-content: center;" class="btn-remove-tarefa">×</button>
                   </div>
                 `).join('')}
                 <button style="position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%; border: none; background: ${isProjetos?'#0E76E0':'#4324C4'}; color: white; cursor: pointer; font-size: 20px;" onclick="abrirModalTarefa(${p.id}, ${isProjetos})">+</button>
@@ -613,7 +666,181 @@
       document.getElementById(id).classList.remove('show');
     }
 
-    window.addEventListener('DOMContentLoaded', carregarDoFirebase);
+    function removerTarefa(pId, tId, isP) {
+      if (!confirm('Remover esta tarefa?')) return;
+      const data = isP ? projetos : pipeline;
+      const proj = data.find(p => p.id === pId);
+      if (proj && proj.tarefas) {
+        proj.tarefas = proj.tarefas.filter(t => t.id !== tId);
+        sincronizarComFirebase();
+      }
+    }
+
+    // ========================================
+    // DRAG & DROP E RESIZE
+    // ========================================
+    let dragState = {
+      isDragging: false,
+      isResizing: false,
+      element: null,
+      startX: 0,
+      startLeft: 0,
+      startWidth: 0,
+      projetoId: null,
+      tarefaId: null,
+      isProjetos: null,
+      timeline: null
+    };
+
+    function setupDragAndResize() {
+      document.addEventListener('mousedown', handleMouseDown);
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      // Mostrar botão remover no hover
+      document.addEventListener('mouseover', (e) => {
+        const tarefa = e.target.closest('.tarefa-box');
+        if (tarefa) {
+          const btn = tarefa.querySelector('.btn-remove-tarefa');
+          if (btn) btn.style.display = 'flex';
+        }
+      });
+      
+      document.addEventListener('mouseout', (e) => {
+        const tarefa = e.target.closest('.tarefa-box');
+        if (tarefa && !tarefa.contains(e.relatedTarget)) {
+          const btn = tarefa.querySelector('.btn-remove-tarefa');
+          if (btn) btn.style.display = 'none';
+        }
+      });
+    }
+
+    function handleMouseDown(e) {
+      // Verificar se clicou no resize handle
+      const resizeHandle = e.target.closest('.resize-handle');
+      if (resizeHandle) {
+        e.preventDefault();
+        e.stopPropagation();
+        startResize(e, resizeHandle);
+        return;
+      }
+
+      // Verificar se clicou na tarefa (mas não no botão de %)
+      const tarefa = e.target.closest('.tarefa-box');
+      if (tarefa && !e.target.closest('span[onclick]') && !e.target.closest('button')) {
+        e.preventDefault();
+        startDrag(e, tarefa);
+      }
+    }
+
+    function startDrag(e, element) {
+      const timeline = element.parentElement;
+      const rect = timeline.getBoundingClientRect();
+      
+      dragState = {
+        isDragging: true,
+        isResizing: false,
+        element: element,
+        startX: e.clientX,
+        startLeft: parseFloat(element.style.left) || 0,
+        startWidth: parseFloat(element.style.width) || 25,
+        projetoId: parseInt(element.dataset.projetoId),
+        tarefaId: parseInt(element.dataset.tarefaId),
+        isProjetos: element.dataset.isProjetos === 'true',
+        timeline: timeline,
+        timelineWidth: rect.width
+      };
+      
+      element.classList.add('dragging');
+      document.body.style.cursor = 'grabbing';
+    }
+
+    function startResize(e, handle) {
+      const element = handle.parentElement;
+      const timeline = element.parentElement;
+      const rect = timeline.getBoundingClientRect();
+      
+      dragState = {
+        isDragging: false,
+        isResizing: true,
+        element: element,
+        startX: e.clientX,
+        startLeft: parseFloat(element.style.left) || 0,
+        startWidth: parseFloat(element.style.width) || 25,
+        projetoId: parseInt(element.dataset.projetoId),
+        tarefaId: parseInt(element.dataset.tarefaId),
+        isProjetos: element.dataset.isProjetos === 'true',
+        timeline: timeline,
+        timelineWidth: rect.width
+      };
+      
+      document.body.style.cursor = 'ew-resize';
+    }
+
+    function handleMouseMove(e) {
+      if (!dragState.isDragging && !dragState.isResizing) return;
+      
+      e.preventDefault();
+      const deltaX = e.clientX - dragState.startX;
+      const deltaPercent = (deltaX / dragState.timelineWidth) * 100;
+
+      if (dragState.isDragging) {
+        // Arrastar
+        let newLeft = dragState.startLeft + deltaPercent;
+        const maxLeft = 100 - dragState.startWidth;
+        newLeft = Math.max(0, Math.min(maxLeft, newLeft));
+        dragState.element.style.left = newLeft + '%';
+        
+      } else if (dragState.isResizing) {
+        // Redimensionar
+        let newWidth = dragState.startWidth + deltaPercent;
+        const maxWidth = 100 - dragState.startLeft;
+        newWidth = Math.max(5, Math.min(maxWidth, newWidth));
+        dragState.element.style.width = newWidth + '%';
+      }
+    }
+
+    function handleMouseUp(e) {
+      if (!dragState.isDragging && !dragState.isResizing) return;
+      
+      // Salvar posição final
+      const finalLeft = parseFloat(dragState.element.style.left);
+      const finalWidth = parseFloat(dragState.element.style.width);
+      
+      const data = dragState.isProjetos ? projetos : pipeline;
+      const projeto = data.find(p => p.id === dragState.projetoId);
+      const tarefa = projeto?.tarefas?.find(t => t.id === dragState.tarefaId);
+      
+      if (tarefa) {
+        tarefa.posicaoInicio = Math.round(finalLeft * 10) / 10;
+        tarefa.largura = Math.round(finalWidth * 10) / 10;
+        sincronizarComFirebase();
+      }
+      
+      // Limpar estado
+      if (dragState.element) {
+        dragState.element.classList.remove('dragging');
+      }
+      document.body.style.cursor = '';
+      
+      dragState = {
+        isDragging: false,
+        isResizing: false,
+        element: null,
+        startX: 0,
+        startLeft: 0,
+        startWidth: 0,
+        projetoId: null,
+        tarefaId: null,
+        isProjetos: null,
+        timeline: null
+      };
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      carregarDoFirebase();
+      setupDragAndResize();
+    });
   </script>
 </body>
 </html>
