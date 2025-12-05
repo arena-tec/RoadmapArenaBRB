@@ -693,7 +693,16 @@
         </div>`;
       } else {
         data.forEach((p, idx) => {
-          const h = Math.max(70, (p.tarefas?.length || 0) * 60 + 20);
+          // Calcular altura necessária baseada nas tarefas
+          let maxHeight = 70;
+          if (p.tarefas && p.tarefas.length > 0) {
+            p.tarefas.forEach(t => {
+              const tarefaBottom = (t.posicaoVertical !== undefined ? t.posicaoVertical : 0) + 60;
+              maxHeight = Math.max(maxHeight, tarefaBottom + 20);
+            });
+          }
+          const h = maxHeight;
+          
           html += `
             <div class="projeto-row" draggable="true" data-projeto-id="${p.id}" data-projeto-index="${idx}" data-is-projetos="${isProjetos}">
               <div class="projeto-label" style="background: ${p.cor}; min-height: ${h}px; position: relative; padding-right: 70px;">
@@ -705,8 +714,10 @@
               </div>
               <div class="projeto-timeline" style="min-height: ${h}px;">
                 ${meses.map((_, i) => `<div class="mes-col" style="left: ${i*100/meses.length}%; width: ${100/meses.length}%;"></div>`).join('')}
-                ${(p.tarefas||[]).map((t, i) => `
-                  <div class="tarefa-box" data-projeto-id="${p.id}" data-tarefa-id="${t.id}" data-is-projetos="${isProjetos}" style="background: ${getCorPorPercentual(t.percentualEntrega||0)}; left: ${t.posicaoInicio||0}%; width: ${t.largura||25}%; top: ${i*60+10}px;">
+                ${(p.tarefas||[]).map((t, i) => {
+                  const topPosition = t.posicaoVertical !== undefined ? t.posicaoVertical : (i * 60 + 10);
+                  return `
+                  <div class="tarefa-box" data-projeto-id="${p.id}" data-tarefa-id="${t.id}" data-is-projetos="${isProjetos}" style="background: ${getCorPorPercentual(t.percentualEntrega||0)}; left: ${t.posicaoInicio||0}%; width: ${t.largura||25}%; top: ${topPosition}px;">
                     <svg class="drag-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <line x1="4" y1="8" x2="20" y2="8"></line>
                       <line x1="4" y1="16" x2="20" y2="16"></line>
@@ -716,7 +727,7 @@
                     <div class="resize-handle" data-projeto-id="${p.id}" data-tarefa-id="${t.id}" data-is-projetos="${isProjetos}"></div>
                     <button onclick="event.stopPropagation(); removerTarefa(${p.id}, ${t.id}, ${isProjetos})" style="position: absolute; top: -10px; right: -10px; width: 24px; height: 24px; border-radius: 50%; border: none; background: #EF4444; color: white; cursor: pointer; font-size: 16px; font-weight: bold; display: none; box-shadow: 0 2px 6px rgba(0,0,0,0.3); align-items: center; justify-content: center;" class="btn-remove-tarefa">×</button>
                   </div>
-                `).join('')}
+                `}).join('')}
                 <button style="position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%; border: none; background: ${isProjetos?'#0E76E0':'#4324C4'}; color: white; cursor: pointer; font-size: 20px; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: all 0.2s;" onclick="abrirModalTarefa(${p.id}, ${isProjetos})" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">+</button>
               </div>
             </div>
@@ -1050,7 +1061,7 @@
         return;
       }
 
-      // Verificar se clicou na tarefa (mas não no botão de %)
+      // Verificar se clicou na tarefa (mas não no botão de % ou botões)
       const tarefa = e.target.closest('.tarefa-box');
       if (tarefa && !e.target.closest('span[onclick]') && !e.target.closest('button')) {
         e.preventDefault();
@@ -1061,19 +1072,23 @@
     function startDrag(e, element) {
       const timeline = element.parentElement;
       const rect = timeline.getBoundingClientRect();
+      const elementRect = element.getBoundingClientRect();
       
       dragState = {
         isDragging: true,
         isResizing: false,
         element: element,
         startX: e.clientX,
+        startY: e.clientY,
         startLeft: parseFloat(element.style.left) || 0,
+        startTop: parseFloat(element.style.top) || 10,
         startWidth: parseFloat(element.style.width) || 25,
         projetoId: parseInt(element.dataset.projetoId),
         tarefaId: parseInt(element.dataset.tarefaId),
         isProjetos: element.dataset.isProjetos === 'true',
         timeline: timeline,
-        timelineWidth: rect.width
+        timelineWidth: rect.width,
+        timelineHeight: rect.height
       };
       
       element.classList.add('dragging');
@@ -1106,18 +1121,29 @@
       if (!dragState.isDragging && !dragState.isResizing) return;
       
       e.preventDefault();
-      const deltaX = e.clientX - dragState.startX;
-      const deltaPercent = (deltaX / dragState.timelineWidth) * 100;
 
       if (dragState.isDragging) {
-        // Arrastar
-        let newLeft = dragState.startLeft + deltaPercent;
+        // Arrastar horizontal E vertical
+        const deltaX = e.clientX - dragState.startX;
+        const deltaY = e.clientY - dragState.startY;
+        const deltaPercentX = (deltaX / dragState.timelineWidth) * 100;
+        
+        // Movimento horizontal
+        let newLeft = dragState.startLeft + deltaPercentX;
         const maxLeft = 100 - dragState.startWidth;
         newLeft = Math.max(0, Math.min(maxLeft, newLeft));
         dragState.element.style.left = newLeft + '%';
         
+        // Movimento vertical
+        let newTop = dragState.startTop + deltaY;
+        const maxTop = dragState.timelineHeight - 60; // 60 = altura da tarefa + margem
+        newTop = Math.max(10, Math.min(maxTop, newTop));
+        dragState.element.style.top = newTop + 'px';
+        
       } else if (dragState.isResizing) {
         // Redimensionar
+        const deltaX = e.clientX - dragState.startX;
+        const deltaPercent = (deltaX / dragState.timelineWidth) * 100;
         let newWidth = dragState.startWidth + deltaPercent;
         const maxWidth = 100 - dragState.startLeft;
         newWidth = Math.max(5, Math.min(maxWidth, newWidth));
@@ -1131,6 +1157,7 @@
       // Salvar posição final
       const finalLeft = parseFloat(dragState.element.style.left);
       const finalWidth = parseFloat(dragState.element.style.width);
+      const finalTop = parseFloat(dragState.element.style.top);
       
       const data = dragState.isProjetos ? projetos : pipeline;
       const projeto = data.find(p => p.id === dragState.projetoId);
@@ -1139,6 +1166,12 @@
       if (tarefa) {
         tarefa.posicaoInicio = Math.round(finalLeft * 10) / 10;
         tarefa.largura = Math.round(finalWidth * 10) / 10;
+        
+        // Salvar posição vertical também
+        if (dragState.isDragging) {
+          tarefa.posicaoVertical = Math.round(finalTop);
+        }
+        
         sincronizarComFirebase();
       }
       
@@ -1153,7 +1186,9 @@
         isResizing: false,
         element: null,
         startX: 0,
+        startY: 0,
         startLeft: 0,
+        startTop: 0,
         startWidth: 0,
         projetoId: null,
         tarefaId: null,
