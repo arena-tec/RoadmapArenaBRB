@@ -7,7 +7,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
-      font-family: Arial, sans-serif; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
       background: linear-gradient(135deg, #EBF4FF 0%, #D6E8FF 100%); 
       padding: 20px;
       min-height: 100vh;
@@ -17,20 +17,46 @@
     /* Header */
     .header { 
       background: linear-gradient(135deg, #4324C4 0%, #0E76E0 100%); 
-      border-radius: 10px; 
+      border-radius: 12px; 
       padding: 30px; 
       margin-bottom: 30px; 
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
       display: flex; 
       align-items: center; 
       gap: 20px; 
     }
     .header img { height: 50px; }
     .header-text { flex: 1; }
-    .header h1 { font-size: 36px; color: #ffffff; margin-bottom: 10px; }
+    .header h1 { font-size: 36px; color: #ffffff; margin-bottom: 8px; font-weight: 700; }
     .header p { color: #ffffff; opacity: 0.9; font-size: 16px; }
+    .firebase-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.2);
+      padding: 10px 20px;
+      border-radius: 50px;
+      backdrop-filter: blur(10px);
+    }
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #EF4444;
+      animation: pulse 2s infinite;
+    }
+    .status-dot.connected { background: #10B981; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .status-text {
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+    }
     
-    /* Mensagem de salvamento */
+    /* Save message */
     .save-message {
       position: fixed;
       top: 20px;
@@ -40,14 +66,10 @@
       font-weight: bold;
       z-index: 1000;
       display: none;
-      animation: slideIn 0.3s ease-out;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
     .save-message.success { background: #D1FAE5; color: #065F46; }
     .save-message.error { background: #FEE2E2; color: #991B1B; }
-    @keyframes slideIn {
-      from { transform: translateX(400px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
     
     /* Stats */
     .stats { 
@@ -58,38 +80,38 @@
     }
     .stat-card { 
       background: white; 
-      border-radius: 10px; 
+      border-radius: 12px; 
       padding: 30px; 
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    .stat-value { font-size: 40px; font-weight: bold; color: #0E76E0; }
-    .stat-label { color: #6B7280; font-size: 14px; margin-bottom: 10px; }
+    .stat-value { font-size: 48px; font-weight: 700; color: #0E76E0; margin-top: 10px; }
+    .stat-label { color: #6B7280; font-size: 14px; font-weight: 600; text-transform: uppercase; }
     
     /* Total card */
     .total-card { 
       background: linear-gradient(135deg, #4324C4 0%, #0E76E0 100%); 
       color: white; 
-      border-radius: 10px; 
+      border-radius: 12px; 
       padding: 40px; 
       text-align: center; 
       margin-bottom: 30px; 
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+      box-shadow: 0 4px 12px rgba(67, 36, 196, 0.3);
     }
-    .total-card-value { font-size: 60px; font-weight: bold; margin: 10px 0; }
+    .total-card-value { font-size: 72px; font-weight: 700; margin: 15px 0; }
     
     /* Section */
     .section { 
       background: white; 
-      border-radius: 10px; 
+      border-radius: 12px; 
       padding: 30px; 
       margin-bottom: 30px; 
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .section-title { 
       font-size: 24px; 
-      font-weight: bold; 
+      font-weight: 700; 
       color: #1F2937; 
-      margin-bottom: 20px;
+      margin-bottom: 25px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -97,177 +119,82 @@
     
     /* Botões */
     .btn {
-      padding: 10px 20px;
+      padding: 12px 24px;
       border: none;
       border-radius: 8px;
-      font-weight: bold;
+      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      transition: all 0.2s;
       font-size: 14px;
-    }
-    .btn:hover { 
-      opacity: 0.9; 
-      transform: scale(1.05);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
     .btn-primary { background: #0E76E0; color: white; }
     .btn-secondary { background: #4324C4; color: white; }
-    .btn-success { background: #10B981; color: white; }
     
     /* Roadmap */
     .roadmap-container { 
       overflow-x: auto; 
       margin-top: 20px;
-      min-height: 100px;
+      border-radius: 8px;
+      background: #F9FAFB;
+      padding: 20px;
     }
     .roadmap { 
-      min-width: 1600px;
-      width: 100%;
+      min-width: 1400px;
     }
-    .roadmap-header { 
-      display: flex; 
-      border-bottom: 2px solid #D1D5DB; 
-      padding-bottom: 10px; 
-      margin-bottom: 20px; 
-    }
-    .roadmap-header-label { 
-      width: 144px; 
-      font-weight: bold; 
-      font-size: 14px; 
-      color: #374151; 
-    }
-    .roadmap-header-months { flex: 1; display: flex; }
-    .roadmap-month { 
-      flex: 1; 
-      text-align: center; 
-      border-left: 1px solid #D1D5DB; 
-      padding: 0 10px; 
-    }
-    .roadmap-month-name { font-size: 18px; font-weight: bold; color: #1F2937; }
-    .roadmap-month-year { font-size: 14px; color: #6B7280; }
     
-    /* Projeto row */
-    .projeto-row { display: flex; margin-bottom: 15px; position: relative; }
-    .projeto-label { 
-      width: 144px; 
-      padding: 12px; 
-      border-radius: 6px; 
-      font-size: 12px; 
-      font-weight: bold; 
-      display: flex; 
-      align-items: center; 
-      margin-right: 8px;
+    .roadmap-header {
+      display: flex;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 3px solid #E5E7EB;
+    }
+    
+    .projeto-row {
+      display: flex;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .projeto-label {
+      width: 200px;
+      padding: 15px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1F2937;
+    }
+    
+    .projeto-timeline {
+      flex: 1;
       position: relative;
-    }
-    .projeto-actions {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      display: flex;
-      gap: 5px;
-    }
-    .projeto-actions button {
-      background: rgba(255,255,255,0.8);
-      border: none;
-      border-radius: 4px;
-      padding: 4px 8px;
-      cursor: pointer;
-      font-size: 11px;
-    }
-    .projeto-actions button:hover { background: white; }
-    
-    .projeto-timeline { 
-      flex: 1; 
-      position: relative; 
-      border-left: 1px solid #D1D5DB; 
-      min-height: 65px; 
-    }
-    .month-divider { 
-      position: absolute; 
-      top: 0; 
-      bottom: 0; 
-      border-right: 1px solid #E5E7EB; 
+      min-height: 70px;
+      background: linear-gradient(to right, #FAFAFA 0%, #F3F4F6 100%);
+      border-left: 2px solid #E5E7EB;
     }
     
-    /* Tarefa */
-    .tarefa { 
-      position: absolute; 
-      height: 48px; 
-      border-radius: 6px; 
-      padding: 0 10px; 
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between; 
-      font-size: 12px; 
-      font-weight: bold; 
-      color: #1F2937; 
-      border: 3px solid rgba(0,0,0,0.15); 
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-      top: 8px;
-      cursor: move;
-      user-select: none;
-      transition: all 0.2s;
-    }
-    .tarefa:hover { 
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      transform: translateY(-2px);
-    }
-    .tarefa-nome { 
-      flex: 1; 
-      overflow: hidden; 
-      text-overflow: ellipsis; 
-      white-space: nowrap; 
-    }
-    .tarefa-percent { 
-      font-weight: bold; 
-      margin-left: 8px;
-      cursor: pointer;
-      padding: 2px 6px;
-      border-radius: 4px;
-      transition: background 0.2s;
-    }
-    .tarefa-percent:hover { 
-      background: rgba(255,255,255,0.5); 
-    }
-    .tarefa-item {
-      transition: all 0.2s;
-    }
-    .tarefa-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      z-index: 10;
-    }
-    .btn-remove-tarefa {
-      display: none !important;
-      align-items: center;
-      justify-content: center;
-    }
-    .tarefa-item:hover .btn-remove-tarefa {
-      display: flex !important;
-    }
-    .tarefa-actions {
+    .mes-col {
       position: absolute;
-      top: -8px;
-      right: -8px;
-      display: none;
-      gap: 4px;
+      top: 0;
+      bottom: 0;
+      border-right: 1px dashed #D1D5DB;
     }
-    .tarefa:hover .tarefa-actions { display: flex; }
-    .tarefa-actions button {
-      background: #EF4444;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-      font-size: 12px;
+    
+    .tarefa-box {
+      position: absolute;
+      height: 50px;
+      border-radius: 6px;
+      padding: 8px 12px;
       display: flex;
       align-items: center;
-      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1F2937;
+      border: 2px solid rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
     
     /* Modal */
@@ -278,7 +205,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.6);
       z-index: 1000;
       align-items: center;
       justify-content: center;
@@ -286,61 +213,48 @@
     .modal.show { display: flex; }
     .modal-content {
       background: white;
-      border-radius: 10px;
-      padding: 30px;
+      border-radius: 12px;
+      padding: 35px;
       max-width: 500px;
       width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
-    .modal-title { font-size: 24px; font-weight: bold; margin-bottom: 20px; }
+    .modal-title { font-size: 24px; font-weight: 700; margin-bottom: 25px; }
     .form-group { margin-bottom: 20px; }
     .form-group label { 
       display: block; 
       margin-bottom: 8px; 
-      font-weight: bold; 
-      color: #374151;
+      font-weight: 600; 
+      font-size: 14px;
     }
     .form-group input {
       width: 100%;
-      padding: 10px;
-      border: 2px solid #D1D5DB;
-      border-radius: 6px;
-      font-size: 14px;
+      padding: 12px;
+      border: 2px solid #E5E7EB;
+      border-radius: 8px;
+      font-size: 15px;
     }
     .modal-actions {
       display: flex;
       gap: 10px;
+      margin-top: 25px;
     }
     .modal-actions button { flex: 1; }
     
-    /* Botões flutuantes */
-    .floating-buttons {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      z-index: 999;
-    }
+    /* Floating button */
     .floating-btn {
-      padding: 15px 25px;
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      padding: 18px 32px;
       border: none;
       border-radius: 50px;
-      font-weight: bold;
+      font-weight: 700;
       font-size: 16px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .floating-btn:hover { transform: scale(1.1); }
-    
-    @media print {
-      .floating-buttons, .btn, .projeto-actions, .tarefa-actions { display: none !important; }
-      @page { size: landscape; margin: 1cm; }
-      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      background: #10B981;
+      color: white;
+      z-index: 999;
     }
   </style>
 </head>
@@ -350,14 +264,14 @@
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iOTcuNzExIiBoZWlnaHQ9IjQzLjA1IiB2aWV3Qm94PSIwIDAgOTcuNzExIDQzLjA1Ij4KICA8ZGVmcz4KICAgIDxjbGlwUGF0aCBpZD0iYSI+CiAgICAgIDxyZWN0IHdpZHRoPSI5Ny43MTEiIGhlaWdodD0iNDMuMDUiIGZpbGw9Im5vbmUiPjwvcmVjdD4KICAgIDwvY2xpcFBhdGg+CiAgPC9kZWZzPgogIDxnIGNsaXAtcGF0aD0idXJsKCNhKSI+CiAgICA8cGF0aCBkPSJNMTMuNDY5LDU2LjUyNGwtLjQxNywyLjY2MmEyOS4zMTcsMjkuMzE3LDAsMCwxLDE1LjIzLDguMzYybDYuMDgxLTMuOTkzcy43LS40NzMsMS4wMjgtLjA3N2MwLDAsLjMxOS4zMDgtLjI5Mi45NjdsLTQuOTk0LDUuMTc5YTI5LjE5MSwyOS4xOTEsMCwwLDEsNi4zMTgsMTUuNzI0aDIuODQ2bDQuNTA5LTI4LjgyNloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC05Ljc2OCAtNDIuMykiIGZpbGw9IiNmZmYiPjwvcGF0aD4KICAgIDxwYXRoIGQ9Ik0xNDkuMTA2LDY4LjMwOEgxNDUuNDhsMS4xODktNy40OTJoNC4xYzIuMzYyLDAsMi43Ny4yMTcsMy4xMzQuNzEyYTIuNjQzLDIuNjQzLDAsMCwxLC40NDUsMS42NjMsNC45LDQuOSwwLDAsMS01LjI0MSw1LjExN20yLjQ3MSwxMS44ODJjLTEuMDMuNzA4LTEuNzA3LjkxNC00LjIxNS45MTRoLTMuODhsMS4yOC04LjI4MWg0LjA5NWMzLjk1OSwwLDQuNDkzLDEuNzQ4LDQuNDkzLDMuNDU2YTQuNiw0LjYsMCwwLDEtMS43NzMsMy45MTFtMy4zODYtMTBhOC4yNzcsOC4yNzcsMCwwLDAsNC40ODItNy4zMzQsNi4xNzEsNi4xNzEsMCwwLDAtMS43LTQuNDgzYy0xLjI4Mi0xLjMyOC0yLjgzNy0xLjgyNS01LjczMS0xLjgyNWgtOS40ODdsLS4wOTIuNTg5LTMuNywyMy40NzZjLS4yNzIsMS43MTYtLjA0NSw0LjczNywzLjczLDQuNzUxdjBoNi41MTlhOSw5LDAsMCwwLDkuNDIzLTkuMzgxLDYuMTE2LDYuMTE2LDAsMCwwLTMuNDQxLTUuOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEwMy43NjQgLTQyLjMyMSkiIGZpbGw9IiNmZmYiPjwvcGF0aD4KICAgIDxwYXRoIGQ9Ik0yMjguODY1LDY5LjM0OGwxLjM1Ni04LjUzMmgzLjg1YzMuNTUzLDAsNC4yLjk1NCw0LjIsMi44MzNhNS40MzYsNS40MzYsMCwwLDEtNS43ODMsNS43Wm02LjkzNywzLjYzNGE5LjQ1Miw5LjQ1MiwwLDAsMCw3LjMxOS05LjMzM2MwLTQuNTc3LTIuODU5LTcuMS04LjA1Mi03LjFoLTguOTkybC0uMDkyLjU5Mi0zLjgsMjQuMzg1Yy0uMTY5LDEuMjQ5LTEuMTEzLDMuODQzLDMuNDE5LDMuODQxbC40MzcsMGguMzE3bC4wOTQtLjU5MiwxLjczNi0xMS4xNjZoMi42MThsNS41NDIsMTEuMzY1LjE5Mi4zOTRoNS40NzZsLS41MDgtMS4wMTNaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTY2LjEzMiAtNDIuMzIxKSIgZmlsbD0iI2ZmZiI+PC9wYXRoPgogICAgPHBhdGggZD0iTTMxNi4xODksNjguMzA4aC0zLjYyN2wxLjE5MS03LjQ5Mmg0LjFjMi4zNjMsMCwyLjc3LjIxNywzLjEzNC43MTJhMi42NDksMi42NDksMCwwLDEsLjQ0NiwxLjY2Myw0LjksNC45LDAsMCwxLTUuMjQyLDUuMTE3bTIuNDcsMTEuODgyYy0xLjAyOC43MDgtMS43MDYuOTE0LTQuMjE0LjkxNGgtMy44NzlsMS4yNzktOC4yODFoNC4wOTRjMy45NjEsMCw0LjQ5NSwxLjc0OCw0LjQ5NSwzLjQ1NmE0LjYsNC42LDAsMCwxLTEuNzc0LDMuOTExbTMuMzg2LTEwYTguMjc2LDguMjc2LDAsMCwwLDQuNDgxLTcuMzM0LDYuMTY3LDYuMTY3LDAsMCwwLTEuNy00LjQ4M2MtMS4yODItMS4zMjktMi44MzgtMS44MjUtNS43MzEtMS44MjVoLTkuNDg5bC0uMDkyLjU5LTMuNjkyLDIzLjQyNGMtLjI0NCwxLjctLjA4OCw0Ljc4NywzLjcyNSw0Ljh2MGg2LjUxNmE5LDksMCwwLDAsOS40MjUtOS4zODEsNi4xMTQsNi4xMTQsMCwwLDAtMy40NDQtNS43OTUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMjguODE2IC00Mi4zMjEpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNOS41MjQsOTQuNjE1bC0uMjc4LS4zMzYsNi41LTcuMzA2QTI2LjA0OSwyNi4wNDksMCwwLDAsMi43NzgsNzkuOTg1TC4xMjcsOTYuOTI4Yy0uNDYyLDMuMTc3LjExNSw1Ljk3OCw1LjQxMSw1Ljk3OEgyMy4zNjZhMjUuOTM5LDI1LjkzOSwwLDAsMC01LjMyNy0xMy4zNTlaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC01OS44NTkpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNMTYyLjY2MS4wODcsMTU3LjU0LDkuMDY2YS43MjguNzI4LDAsMCwwLC42MzMsMS4wOWguMmwxLjM1Ni0yLjM5MWg0LjEwOWwuMzUsMi4zOTFoMS40MUwxNjQuMTIyLjA4N1ptLjQ3OSwyLjYwNy41NzksMy45MzloLTMuMzkzbDIuMjM2LTMuOTI3Yy4xODEtLjMwOS4zMy0uNi40NzctLjkwOS4wMjYuMy4wNi42LjEuOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTExNy44MjYgLTAuMDY1KSIgZmlsbD0iI2ZmZiI+PC9wYXRoPgogICAgPHBhdGggZD0iTTM1OS43NTgsOS45NTgsMzU4LjMzMi4yMzRhLjE3My4xNzMsMCwwLDAtLjE3LS4xNDdoLTEuMjEzYS4xNzMuMTczLDAsMCwwLS4xNDkuMDg3bC01LjAyMSw4LjhhLjc4OC43ODgsMCwwLDAsLjY4NCwxLjE3OC4xNzMuMTczLDAsMCwwLC4xNS0uMDg3bDEuMzA2LTIuM2g0LjEwOWwuMzI4LDIuMjQ0YS4xNzMuMTczLDAsMCwwLC4xNy4xNDdoMS4wNjJhLjE3Mi4xNzIsMCwwLDAsLjE3LS4ybS0yLjQzLTcuMjY0LjU3OSwzLjkzOWgtMy4zOTNsMi4yMzYtMy45MjdjLjE4MS0uMzA5LjMzLS42LjQ3Ny0uOTA5LjAyNi4zLjA2LjYuMS45IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjYzLjE4MyAtMC4wNjUpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNMjIwLjA3NSwyLjE4NWMwLS44MTYtLjQtMi4xODQtMy4wNzMtMi4xODQtLjk2NSwwLTEuODA5LjAxNS0yLjQ0LjA0NGwtLjA4NywwLTEuOTE2LDkuMDQzYS44NDUuODQ1LDAsMCwwLC44MjcsMS4wMjFoLjMxbC45NjItNC41MzVoLjE1MWwyLjc0MSw0LjUzNWgxLjYzOWwtMi4zNy0zLjc2MS0uMjMyLS4zNjljLS4xLS4xNjYtLjIxMS0uMzM3LS4zMTctLjUsMi4yNS0uMTM0LDMuOC0xLjQ3LDMuOC0zLjNtLTEuMzkzLjE0NmMwLDEuMy0xLjE1NiwyLjE3Ni0yLjg3NiwyLjE3Ni0uMzM3LDAtLjcxMy0uMDEtLjkyNi0uMDJsLjcxMy0zLjMzM2MuMjk0LS4wMjMuNzIxLS4wMzYsMS4yMTktLjAzNiwxLjI1OCwwLDEuODcuNCwxLjg3LDEuMjE0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTU5LjA1OSAtMC4wMDEpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNMjYwLjQ4LDEuMjE3aDQuMTdsLjIzNy0xLjEzaC01LjUyNGwtMS45MDgsOS4wMDhhLjg3OC44NzgsMCwwLDAsLjg1OSwxLjA2aDQuNDQxTDI2Mi45OTEsOWgtNC4xNjhsLjc1My0zLjQ2M2gzLjk4MWwuMjM3LTEuMTNoLTMuOThaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTkyLjY1OCAtMC4wNjUpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNMzA3Ljc2Mi4wODdsLS41ODgsMi43ODdjLS4zNCwxLjYwNi0uNzYsMy44MTMtMS4wMTIsNS4xOTUtLjEyOS0uNTIxLS4yODYtMS4wNjctLjQ2MS0xLjZMMzAzLjc2OC4wODdoLTEuNTc2bC0xLjg4Niw4LjlhLjk2NS45NjUsMCwwLDAsLjk0NCwxLjE2NWguMWwuNjc2LTMuMTA5Yy4yOTUtMS40MzYuNzIyLTMuNjI4Ljk1OC00Ljk0Mi4xMjMuNDgxLjI0Ny45MS40MTIsMS40MzhsMS45NzgsNi42MTNoMS41NjFMMzA5LjA3My4wODdaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjI0LjcyNSAtMC4wNjUpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgPC9nPgo8L3N2Zz4K" alt="Arena BRB Logo">
+      <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iOTcuNzExIiBoZWlnaHQ9IjQzLjA1IiB2aWV3Qm94PSIwIDAgOTcuNzExIDQzLjA1Ij4KICA8ZGVmcz4KICAgIDxjbGlwUGF0aCBpZD0iYSI+CiAgICAgIDxyZWN0IHdpZHRoPSI5Ny43MTEiIGhlaWdodD0iNDMuMDUiIGZpbGw9Im5vbmUiPjwvcmVjdD4KICAgIDwvY2xpcFBhdGg+CiAgPC9kZWZzPgogIDxnIGNsaXAtcGF0aD0idXJsKCNhKSI+CiAgICA8cGF0aCBkPSJNMTMuNDY5LDU2LjUyNGwtLjQxNywyLjY2MmEyOS4zMTcsMjkuMzE3LDAsMCwxLDE1LjIzLDguMzYybDYuMDgxLTMuOTkzcy43LS40NzMsMS4wMjgtLjA3N2MwLDAsLjMxOS4zMDgtLjI5Mi45NjdsLTQuOTk0LDUuMTc5YTI5LjE5MSwyOS4xOTEsMCwwLDEsNi4zMTgsMTUuNzI0aDIuODQ2bDQuNTA5LTI4LjgyNloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC05Ljc2OCAtNDIuMykiIGZpbGw9IiNmZmYiPjwvcGF0aD4KICAgIDxwYXRoIGQ9Ik0xNDkuMTA2LDY4LjMwOEgxNDUuNDhsMS4xODktNy40OTJoNC4xYzIuMzYyLDAsMi43Ny4yMTcsMy4xMzQuNzEyYTIuNjQzLDIuNjQzLDAsMCwxLC40NDUsMS42NjMsNC45LDQuOSwwLDAsMS01LjI0MSw1LjExN20yLjQ3MSwxMS44ODJjLTEuMDMuNzA4LTEuNzA3LjkxNC00LjIxNS45MTRoLTMuODhsMS4yOC04LjI4MWg0LjA5NWMzLjk1OSwwLDQuNDkzLDEuNzQ4LDQuNDkzLDMuNDU2YTQuNiw0LjYsMCwwLDEtMS43NzMsMy45MTFtMy4zODYtMTBhOC4yNzcsOC4yNzcsMCwwLDAsNC40ODItNy4zMzQsNi4xNzEsNi4xNzEsMCwwLDAtMS43LTQuNDgzYy0xLjI4Mi0xLjMyOC0yLjgzNy0xLjgyNS01LjczMS0xLjgyNWgtOS40ODdsLS4wOTIuNTg5LTMuNywyMy40NzZjLS4yNzIsMS43MTYtLjA0NSw0LjczNywzLjczLDQuNzUxdjBoNi41MTlhOSw5LDAsMCwwLDkuNDIzLTkuMzgxLDYuMTE2LDYuMTE2LDAsMCwwLTMuNDQxLTUuOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEwMy43NjQgLTQyLjMyMSkiIGZpbGw9IiNmZmYiPjwvcGF0aD4KICAgIDxwYXRoIGQ9Ik0yMjguODY1LDY5LjM0OGwxLjM1Ni04LjUzMmgzLjg1YzMuNTUzLDAsNC4yLjk1NCw0LjIsMi44MzNhNS40MzYsNS40MzYsMCwwLDEtNS43ODMsNS43Wm02LjkzNywzLjYzNGE5LjQ1Miw5LjQ1MiwwLDAsMCw3LjMxOS05LjMzM2MwLTQuNTc3LTIuODU5LTcuMS04LjA1Mi03LjFoLTguOTkybC0uMDkyLjU5Mi0zLjgsMjQuMzg1Yy0uMTY5LDEuMjQ5LTEuMTEzLDMuODQzLDMuNDE5LDMuODQxbC40MzcsMGguMzE3bC4wOTQtLjU5MiwxLjczNi0xMS4xNjZoMi42MThsNS41NDIsMTEuMzY1LjE5Mi4zOTRoNS40NzZsLS41MDgtMS4wMTNaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTY2LjEzMiAtNDIuMzIxKSIgZmlsbD0iI2ZmZiI+PC9wYXRoPgogICAgPHBhdGggZD0iTTMxNi4xODksNjguMzA4aC0zLjYyN2wxLjE5MS03LjQ5Mmg0LjFjMi4zNjMsMCwyLjc3LjIxNywzLjEzNC43MTJhMi42NDksMi42NDksMCwwLDEsLjQ0NiwxLjY2Myw0LjksNC45LDAsMCwxLTUuMjQyLDUuMTE3bTIuNDcsMTEuODgyYy0xLjAyOC43MDgtMS43MDYuOTE0LTQuMjE0LjkxNGgtMy44NzlsMS4yNzktOC4yODFoNC4wOTRjMy45NjEsMCw0LjQ5NSwxLjc0OCw0LjQ5NSwzLjQ1NmE0LjYsNC42LDAsMCwxLTEuNzc0LDMuOTExbTMuMzg2LTEwYTguMjc2LDguMjc2LDAsMCwwLDQuNDgxLTcuMzM0LDYuMTY3LDYuMTY3LDAsMCwwLTEuNy00LjQ4M2MtMS4yODItMS4zMjktMi44MzgtMS44MjUtNS43MzEtMS44MjVoLTkuNDg5bC0uMDkyLjU5LTMuNjkyLDIzLjQyNGMtLjI0NCwxLjctLjA4OCw0Ljc4NywzLjcyNSw0Ljh2MGg2LjUxNmE5LDksMCwwLDAsOS40MjUtOS4zODEsNi4xMTQsNi4xMTQsMCwwLDAtMy40NDQtNS43OTUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMjguODE2IC00Mi4zMjEpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNOS41MjQsOTQuNjE1bC0uMjc4LS4zMzYsNi41LTcuMzA2QTI2LjA0OSwyNi4wNDksMCwwLDAsMi43NzgsNzkuOTg1TC4xMjcsOTYuOTI4Yy0uNDYyLDMuMTc3LjExNSw1Ljk3OCw1LjQxMSw1Ljk3OEgyMy4zNjZhMjUuOTM5LDI1LjkzOSwwLDAsMC01LjMyNy0xMy4zNTlaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC01OS44NTkpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNMTYyLjY2MS4wODcsMTU3LjU0LDkuMDY2YS43MjguNzI4LDAsMCwwLC42MzMsMS4wOWguMmwxLjM1Ni0yLjM5MWg0LjEwOWwuMzUsMi4zOTFoMS40MUwxNjQuMTIyLjA4N1ptLjQ3OSwyLjYwNy41NzksMy45MzloLTMuMzkzbDIuMjM2LTMuOTI3Yy4xODEtLjMwOS4zMy0uNi40NzctLjkwOS4wMjYuMy4wNi42LjEuOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTExNy44MjYgLTAuMDY1KSIgZmlsbD0iI2ZmZiI+PC9wYXRoPgogICAgPHBhdGggZD0iTTM1OS43NTgsOS45NTgsMzU4LjMzMi4yMzRhLjE3My4xNzMsMCwwLDAtLjE3LS4xNDdoLTEuMjEzYS4xNzMuMTczLDAsMCwwLS4xNDkuMDg3bC01LjAyMSw4LjhhLjc4OC43ODgsMCwwLDAsLjY4NCwxLjE3OC4xNzMuMTczLDAsMCwwLC4xNS0uMDg3bDEuMzA2LTIuM2g0LjEwOWwuMzI4LDIuMjQ0YS4xNzMuMTczLDAsMCwwLC4xNy4xNDdoMS4wNjJhLjE3Mi4xNzIsMCwwLDAsLjE3LS4ybS0yLjQzLTcuMjY0LjU3OSwzLjkzOWgtMy4zOTNsMi4yMzYtMy45MjdjLjE4MS0uMzA5LjMzLS42LjQ3Ny0uOTA5LjAyNi4zLjA2LjYuMS45IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjYzLjE4MyAtMC4wNjUpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNMjIwLjA3NSwyLjE4NWMwLS44MTYtLjQtMi4xODQtMy4wNzMtMi4xODQtLjk2NSwwLTEuODA5LjAxNS0yLjQ0LjA0NGwtLjA4NywwLTEuOTE2LDkuMDQzYS44NDUuODQ1LDAsMCwwLC44MjcsMS4wMjFoLjMxbC45NjItNC41MzVoLjE1MWwyLjc0MSw0LjUzNWgxLjYzOWwtMi4zNy0zLjc2MS0uMjMyLS4zNjljLS4xLS4xNjYtLjIxMS0uMzM3LS4zMTctLjUsMi4yNS0uMTM0LDMuOC0xLjQ3LDMuOC0zLjNtLTEuMzkzLjE0NmMwLDEuMy0xLjE1NiwyLjE3Ni0yLjg3NiwyLjE3Ni0uMzM3LDAtLjcxMy0uMDEtLjkyNi0uMDJsLjcxMy0zLjMzM2MuMjk0LS4wMjMuNzIxLS4wMzYsMS4yMTktLjAzNiwxLjI1OCwwLDEuODcuNCwxLjg3LDEuMjE0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTU5LjA1OSAtMC4wMDEpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNMjYwLjQ4LDEuMjE3aDQuMTdsLjIzNy0xLjEzaC01LjUyNGwtMS45MDgsOS4wMDhhLjg3OC44NzgsMCwwLDAsLjg1OSwxLjA2aDQuNDQxTDI2Mi45OTEsOWgtNC4xNjhsLjc1My0zLjQ2M2gzLjk4MWwuMjM3LTEuMTNoLTMuOThaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTkyLjY1OCAtMC4wNjUpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgICA8cGF0aCBkPSJNMzA3Ljc2Mi4wODdsLS41ODgsMi43ODdjLS4zNCwxLjYwNi0uNzYsMy44MTMtMS4wMTIsNS4xOTUtLjEyOS0uNTIxLS4yODYtMS4wNjctLjQ2MS0xLjZMMzAzLjc2OC4wODdoLTEuNTc2bC0xLjg4Niw4LjlhLjk2NS45NjUsMCwwLDAsLjk0NCwxLjE2NWguMWwuNjc2LTMuMTA5Yy4yOTUtMS40MzYuNzIyLTMuNjI4Ljk1OC00Ljk0Mi4xMjMuNDgxLjI0Ny45MS40MTIsMS40MzhsMS45NzgsNi42MTNoMS41NjFMMzA5LjA3My4wODdaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjI0LjcyNSAtMC4wNjUpIiBmaWxsPSIjZmZmIj48L3BhdGg+CiAgPC9nPgo8L3N2Zz4K" alt="Arena BRB">
       <div class="header-text">
         <h1>Roadmap Arena BRB</h1>
         <p>Set/2025 - Mar/2026</p>
       </div>
-      <div style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 50px;">
-        <div id="firebaseStatus" style="width: 12px; height: 12px; border-radius: 50%; background: #EF4444;"></div>
-        <span id="firebaseStatusText" style="color: white; font-size: 14px; font-weight: bold;">Conectando...</span>
+      <div class="firebase-status">
+        <div id="firebaseStatus" class="status-dot"></div>
+        <span id="firebaseStatusText" class="status-text">Conectando...</span>
       </div>
     </div>
 
@@ -373,31 +287,11 @@
       </div>
     </div>
 
-    <!-- Lista de Projetos -->
-    <div class="section">
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px;">
-        <div>
-          <h3 style="font-size: 18px; font-weight: bold; color: #1F2937; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 20px; color: #0E76E0;">📄</span>
-            Projetos em Execução
-          </h3>
-          <div style="max-height: 240px; overflow-y: auto;" id="listaProjetos"></div>
-        </div>
-        <div>
-          <h3 style="font-size: 18px; font-weight: bold; color: #1F2937; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 20px; color: #4324C4;">📄</span>
-            Pipeline de Projetos
-          </h3>
-          <div style="max-height: 240px; overflow-y: auto;" id="listaPipeline"></div>
-        </div>
-      </div>
-    </div>
-
     <!-- Total -->
     <div class="total-card">
-      <div style="font-size: 18px; opacity: 0.9;">Total Geral de Projetos</div>
+      <div style="font-size: 20px; opacity: 0.95; font-weight: 600;">Total Geral de Projetos</div>
       <div class="total-card-value" id="statTotal">0</div>
-      <div style="font-size: 14px; opacity: 0.8;"><span id="statTotalDesc">0 em execução + 0 em pipeline</span></div>
+      <div style="font-size: 16px; opacity: 0.9;"><span id="statTotalDesc">0 em execução + 0 em pipeline</span></div>
     </div>
 
     <!-- Projetos em Execução -->
@@ -407,9 +301,7 @@
         <button class="btn btn-primary" onclick="abrirModalNovoProjeto(true)">+ Novo Projeto</button>
       </div>
       <div class="roadmap-container">
-        <div class="roadmap" id="roadmapProjetos">
-          <!-- Roadmap será renderizado aqui -->
-        </div>
+        <div class="roadmap" id="roadmapProjetos"></div>
       </div>
     </div>
 
@@ -420,37 +312,21 @@
         <button class="btn btn-secondary" onclick="abrirModalNovoProjeto(false)">+ Novo Projeto</button>
       </div>
       <div class="roadmap-container">
-        <div class="roadmap" id="roadmapPipeline">
-          <!-- Roadmap será renderizado aqui -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="section" style="text-align: center;">
-      <p style="font-weight: bold; margin-bottom: 10px; color: #1F2937;">💡 Clique no % para editar progresso | Arraste para mover tarefas</p>
-      <p style="font-size: 14px; color: #6B7280; margin-bottom: 15px;">✨ <strong>Tarefas lado a lado:</strong> Arraste as tarefas livremente - elas se organizam automaticamente em linhas paralelas!</p>
-      <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 15px;">
-        <div style="width: 64px; height: 16px; border-radius: 8px; background: linear-gradient(to right, #FF6B35, #FFD23F, #10B981);"></div>
-        <span style="font-size: 12px; font-weight: bold; color: #374151;">0% (Laranja) → 50% (Amarelo) → 100% (Verde)</span>
+        <div class="roadmap" id="roadmapPipeline"></div>
       </div>
     </div>
   </div>
 
-  <!-- Botões Flutuantes -->
-  <div class="floating-buttons">
-    <button class="floating-btn btn-success" onclick="window.print()">
-      📥 EXPORTAR PDF
-    </button>
-  </div>
+  <!-- Botão Flutuante -->
+  <button class="floating-btn" onclick="window.print()">📥 EXPORTAR PDF</button>
 
-  <!-- Modal Nova Tarefa -->
-  <div id="modalTarefa" class="modal">
+  <!-- Modais -->
+  <div id="modalTarefa" class="modal" onclick="if(event.target===this) fecharModal('modalTarefa')">
     <div class="modal-content">
       <h2 class="modal-title">Nova Tarefa</h2>
       <div class="form-group">
         <label>Nome da Tarefa</label>
-        <input type="text" id="inputTarefaNome" placeholder="Digite o nome da tarefa">
+        <input type="text" id="inputTarefaNome" placeholder="Digite o nome">
       </div>
       <div class="modal-actions">
         <button class="btn btn-primary" onclick="adicionarTarefa()">Adicionar</button>
@@ -459,17 +335,16 @@
     </div>
   </div>
 
-  <!-- Modal Novo Projeto -->
-  <div id="modalProjeto" class="modal">
+  <div id="modalProjeto" class="modal" onclick="if(event.target===this) fecharModal('modalProjeto')">
     <div class="modal-content">
       <h2 class="modal-title">Novo Projeto</h2>
       <div class="form-group">
         <label>Nome do Projeto</label>
-        <input type="text" id="inputProjetoNome" placeholder="Digite o nome do projeto">
+        <input type="text" id="inputProjetoNome">
       </div>
       <div class="form-group">
         <label>Cor</label>
-        <input type="color" id="inputProjetoCor" value="#FEF3C7">
+        <input type="color" id="inputProjetoCor" value="#FEF3C7" style="height: 50px;">
       </div>
       <div class="modal-actions">
         <button class="btn btn-primary" onclick="adicionarProjeto()">Adicionar</button>
@@ -478,13 +353,12 @@
     </div>
   </div>
 
-  <!-- Modal Editar Percentual -->
-  <div id="modalPercentual" class="modal">
+  <div id="modalPercentual" class="modal" onclick="if(event.target===this) fecharModal('modalPercentual')">
     <div class="modal-content">
       <h2 class="modal-title">Editar Progresso</h2>
       <div class="form-group">
-        <label>Percentual de Conclusão (%)</label>
-        <input type="number" id="inputPercentual" min="0" max="100" placeholder="0-100">
+        <label>Percentual (%)</label>
+        <input type="number" id="inputPercentual" min="0" max="100">
       </div>
       <div class="modal-actions">
         <button class="btn btn-primary" onclick="salvarPercentual()">Salvar</button>
@@ -493,22 +367,12 @@
     </div>
   </div>
 
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
   <script>
-    // ========================================
-    // CONFIGURAÇÃO DO FIREBASE
-    // ========================================
-    // INSTRUÇÕES: Substitua os valores abaixo com suas credenciais do Firebase
-    // 1. Acesse https://console.firebase.google.com/
-    // 2. Crie um novo projeto ou use um existente
-    // 3. Vá em Configurações do Projeto > Seus Aplicativos > SDK
-    // 4. Copie as credenciais e cole aqui
-    
     const firebaseConfig = {
-        apiKey: "AIzaSyDIoRUQYh7N6eAfCxmx5ToN4-LL519hip8",
+  apiKey: "AIzaSyDIoRUQYh7N6eAfCxmx5ToN4-LL519hip8",
   authDomain: "roadmap-arena-brb.firebaseapp.com",
   databaseURL: "https://roadmap-arena-brb-default-rtdb.firebaseio.com",
   projectId: "roadmap-arena-brb",
@@ -517,36 +381,27 @@
   appId: "1:497663406664:web:22c9aef77aec1e26edde7d"
     };
 
-    // Inicializar Firebase
     let app, database;
     try {
       app = firebase.initializeApp(firebaseConfig);
       database = firebase.database();
       
-      // Testar conexão
       const connectedRef = database.ref('.info/connected');
       connectedRef.on('value', (snap) => {
-        if (snap.val() === true) {
-          console.log('✅ Firebase conectado com sucesso!');
-          document.getElementById('firebaseStatus').style.background = '#10B981';
-          document.getElementById('firebaseStatusText').textContent = 'Conectado';
+        const dot = document.getElementById('firebaseStatus');
+        const text = document.getElementById('firebaseStatusText');
+        if (snap.val()) {
+          dot.classList.add('connected');
+          text.textContent = 'Conectado';
         } else {
-          console.log('⚠️ Firebase desconectado');
-          document.getElementById('firebaseStatus').style.background = '#EF4444';
-          document.getElementById('firebaseStatusText').textContent = 'Desconectado';
+          dot.classList.remove('connected');
+          text.textContent = 'Desconectado';
         }
       });
-      
     } catch (error) {
-      console.error('❌ Erro ao conectar Firebase:', error);
-      document.getElementById('firebaseStatus').style.background = '#EF4444';
-      document.getElementById('firebaseStatusText').textContent = 'Erro na configuração';
-      alert('⚠️ Configure o Firebase! Veja as instruções no README.md');
+      console.error('Firebase erro:', error);
     }
 
-    // ========================================
-    // DADOS E ESTADO
-    // ========================================
     const meses = [
       { label: 'Set', ano: 2025 }, { label: 'Out', ano: 2025 },
       { label: 'Nov', ano: 2025 }, { label: 'Dez', ano: 2025 },
@@ -560,23 +415,13 @@
     let tarefaSelecionada = null;
     let isProjetoList = true;
 
-    // ========================================
-    // FUNÇÕES FIREBASE
-    // ========================================
     function sincronizarComFirebase() {
       if (!database) return;
-      
-      const roadmapRef = database.ref('roadmap');
-      roadmapRef.set({
-        projetos: projetos,
-        pipeline: pipeline,
-        ultimaAtualizacao: new Date().toISOString()
-      }).then(() => {
-        mostrarMensagem('✅ Sincronizado com sucesso!', 'success');
-      }).catch((error) => {
-        mostrarMensagem('❌ Erro ao sincronizar', 'error');
-        console.error('Erro:', error);
-      });
+      database.ref('roadmap').set({
+        projetos, pipeline,
+        timestamp: new Date().toISOString()
+      }).then(() => mostrarMensagem('✅ Salvo', 'success'))
+        .catch(e => mostrarMensagem('❌ Erro', 'error'));
     }
 
     function carregarDoFirebase() {
@@ -585,92 +430,49 @@
         return;
       }
       
-      // Mostrar loading
-      mostrarMensagem('⏳ Carregando dados...', 'success');
-      
-      const roadmapRef = database.ref('roadmap');
-      roadmapRef.on('value', (snapshot) => {
+      database.ref('roadmap').on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
           projetos = data.projetos || [];
           pipeline = data.pipeline || [];
-          mostrarMensagem('✅ Dados carregados!', 'success');
         } else {
           carregarDadosIniciais();
         }
         renderizar();
-      }, (error) => {
-        console.error('Erro ao carregar:', error);
-        mostrarMensagem('⚠️ Erro ao carregar dados', 'error');
-        carregarDadosIniciais();
       });
     }
 
     function carregarDadosIniciais() {
       projetos = [
         { id: 1, nome: "WiFi Staff", cor: "#D1FAE5", tarefas: [] },
-        { id: 2, nome: "WiFi - Alta Densidade", cor: "#D1FAE5", tarefas: [] },
-        { id: 3, nome: "WiFi - GNN", cor: "#D1FAE5", tarefas: [] },
-        { id: 4, nome: "CFTV GNN", cor: "#CCFBF1", tarefas: [] },
-        { id: 5, nome: "CFTV - Precinto/Indigo", cor: "#CCFBF1", tarefas: [] },
-        { id: 6, nome: "Catracas Facial/QRCode", cor: "#E0E7FF", tarefas: [] },
-        { id: 7, nome: "Catracas - Facial Esfera", cor: "#E0E7FF", tarefas: [] },
-        { id: 8, nome: "Catracas - GNN", cor: "#E0E7FF", tarefas: [] },
-        { id: 9, nome: "SDAI Esfera 2.0", cor: "#BFDBFE", tarefas: [] },
-        { id: 10, nome: "SDAI Esfera 3.0", cor: "#BFDBFE", tarefas: [] },
-        { id: 11, nome: "Claro 5G", cor: "#FED7AA", tarefas: [] },
-        { id: 12, nome: "POC Xtreme", cor: "#FEE2E2", tarefas: [] },
-        { id: 13, nome: "Oracle Módulo Projetos", cor: "#FBCFE8", tarefas: [] },
-        { id: 14, nome: "LINKs Upgrades", cor: "#FEF3C7", tarefas: [] }
+        { id: 2, nome: "CFTV GNN", cor: "#CCFBF1", tarefas: [] },
+        { id: 3, nome: "Catracas GNN", cor: "#E0E7FF", tarefas: [] }
       ];
-      
       pipeline = [
-        { id: 15, nome: "FIFA - Adequação PTA2", cor: "#E9D5FF", tarefas: [] },
-        { id: 16, nome: "FIFA - Rota Fibra PTA2", cor: "#E9D5FF", tarefas: [] },
-        { id: 17, nome: "FIFA - Tribuna Imprensa", cor: "#E9D5FF", tarefas: [] },
-        { id: 18, nome: "FIFA - TEAP", cor: "#E9D5FF", tarefas: [] },
-        { id: 19, nome: "5G Vivo", cor: "#FED7AA", tarefas: [] },
-        { id: 20, nome: "Gap Análises Sistema Áudio", cor: "#BFDBFE", tarefas: [] },
-        { id: 21, nome: "SDAI GNN", cor: "#BFDBFE", tarefas: [] },
-        { id: 22, nome: "Cabeamento Estruturado", cor: "#CCFBF1", tarefas: [] },
-        { id: 23, nome: "Switch's 2 PAV", cor: "#CCFBF1", tarefas: [] },
-        { id: 24, nome: "2 switches core para apartar provedores", cor: "#CCFBF1", tarefas: [] },
-        { id: 25, nome: "RACKs GNN transmissão", cor: "#CCFBF1", tarefas: [] },
-        { id: 26, nome: "Fibra redundância GNN", cor: "#CCFBF1", tarefas: [] },
-        { id: 27, nome: "Fibra Bilheteria GNN", cor: "#CCFBF1", tarefas: [] },
-        { id: 28, nome: "LED Lightning Catracas", cor: "#FEF3C7", tarefas: [] }
+        { id: 4, nome: "FIFA - PTA2", cor: "#E9D5FF", tarefas: [] },
+        { id: 5, nome: "Cabeamento", cor: "#CCFBF1", tarefas: [] }
       ];
-      
       renderizar();
       sincronizarComFirebase();
     }
 
-    // ========================================
-    // FUNÇÕES DE UI
-    // ========================================
     function mostrarMensagem(texto, tipo) {
       const msg = document.getElementById('saveMessage');
       msg.textContent = texto;
       msg.className = `save-message ${tipo}`;
       msg.style.display = 'block';
-      setTimeout(() => {
-        msg.style.display = 'none';
-      }, 3000);
+      setTimeout(() => msg.style.display = 'none', 2000);
     }
 
-    function getCorPorPercentual(percentual) {
-      if (percentual <= 50) {
-        const ratio = percentual / 50;
-        const g = Math.round(107 + (210 - 107) * ratio);
-        const b = Math.round(53 + (63 - 53) * ratio);
-        return `rgb(255, ${g}, ${b})`;
-      } else {
-        const ratio = (percentual - 50) / 50;
-        const r = Math.round(255 - (255 - 16) * ratio);
-        const g = Math.round(210 - (210 - 185) * ratio);
-        const b = Math.round(63 + (129 - 63) * ratio);
-        return `rgb(${r}, ${g}, ${b})`;
+    function getCorPorPercentual(p) {
+      p = p || 0;
+      if (p <= 50) {
+        const r = Math.round(107 + (210-107)*(p/50));
+        return `rgb(255, ${r}, 53)`;
       }
+      const r = Math.round(255 - (255-16)*((p-50)/50));
+      const g = Math.round(210 - (210-185)*((p-50)/50));
+      return `rgb(${r}, ${g}, 129)`;
     }
 
     function renderizar() {
@@ -683,337 +485,135 @@
       document.getElementById('statProjetos').textContent = projetos.length;
       document.getElementById('statPipeline').textContent = pipeline.length;
       document.getElementById('statTotal').textContent = projetos.length + pipeline.length;
-      document.getElementById('statTotalDesc').textContent = 
-        `${projetos.length} em execução + ${pipeline.length} em pipeline`;
-      
-      // Renderizar listas
-      let htmlProjetos = '';
-      projetos.forEach((projeto, idx) => {
-        htmlProjetos += `
-          <div style="display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 6px; background-color: ${projeto.cor}; margin-bottom: 6px;">
-            <span style="font-weight: bold; color: #374151;">${idx + 1}.</span>
-            <span style="flex: 1; font-weight: 600; color: #1F2937; font-size: 14px;">${projeto.nome}</span>
-          </div>
-        `;
-      });
-      document.getElementById('listaProjetos').innerHTML = htmlProjetos || '<p style="color: #9CA3AF; text-align: center;">Nenhum projeto</p>';
-      
-      let htmlPipeline = '';
-      pipeline.forEach((projeto, idx) => {
-        htmlPipeline += `
-          <div style="display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 6px; background-color: ${projeto.cor}; margin-bottom: 6px;">
-            <span style="font-weight: bold; color: #374151;">${idx + 1}.</span>
-            <span style="flex: 1; font-weight: 600; color: #1F2937; font-size: 14px;">${projeto.nome}</span>
-          </div>
-        `;
-      });
-      document.getElementById('listaPipeline').innerHTML = htmlPipeline || '<p style="color: #9CA3AF; text-align: center;">Nenhum projeto</p>';
+      document.getElementById('statTotalDesc').textContent = `${projetos.length} em execução + ${pipeline.length} em pipeline`;
     }
 
-    function renderizarRoadmap(containerId, data, isProjetos) {
-      const container = document.getElementById(containerId);
-      
-      if (!container) {
-        console.error('Container não encontrado:', containerId);
-        return;
-      }
-      
-      console.log(`Renderizando ${containerId} com ${data.length} projetos`);
+    function renderizarRoadmap(id, data, isProjetos) {
+      const el = document.getElementById(id);
+      if (!el) return;
       
       let html = `
-        <div style="display: flex; margin-bottom: 20px; border-bottom: 2px solid #D1D5DB; padding-bottom: 10px;">
-          <div style="width: 180px; font-weight: bold; font-size: 14px; color: #374151; padding-right: 8px;">PROJETO</div>
+        <div class="roadmap-header">
+          <div style="width: 200px; font-weight: 700;">PROJETO</div>
           <div style="flex: 1; display: flex;">
-            ${meses.map(mes => `
-              <div style="flex: 1; text-align: center; border-left: 1px solid #D1D5DB; padding: 0 10px;">
-                <div style="font-size: 18px; font-weight: bold; color: #1F2937;">${mes.label}</div>
-                <div style="font-size: 14px; color: #6B7280;">${mes.ano}</div>
+            ${meses.map(m => `
+              <div style="flex: 1; text-align: center; border-left: 2px solid #E5E7EB; padding: 8px;">
+                <div style="font-size: 18px; font-weight: 700;">${m.label}</div>
+                <div style="font-size: 13px; color: #6B7280;">${m.ano}</div>
               </div>
             `).join('')}
           </div>
         </div>
       `;
 
-      if (data.length === 0) {
-        html += `<div style="text-align: center; padding: 40px; color: #9CA3AF;">
-          <p style="font-size: 16px; margin-bottom: 10px;">Nenhum projeto cadastrado</p>
-          <p style="font-size: 14px;">Clique em "+ Novo Projeto" para adicionar</p>
+      if (!data.length) {
+        html += `<div style="text-align: center; padding: 60px; color: #9CA3AF;">
+          <div style="font-size: 48px;">📋</div>
+          <p style="font-size: 16px; margin: 15px 0;">Nenhum projeto</p>
         </div>`;
       } else {
-        data.forEach(projeto => {
-          const numLinhas = Math.max(1, projeto.tarefas.length || 0);
-          const altura = numLinhas * 55 + 20;
-          
+        data.forEach(p => {
+          const h = Math.max(70, (p.tarefas?.length || 0) * 60 + 20);
           html += `
-            <div style="display: flex; margin-bottom: 15px; align-items: stretch;">
-              <div style="width: 180px; padding: 12px; border-radius: 6px; background-color: ${projeto.cor}; min-height: ${altura}px; position: relative; display: flex; align-items: center; margin-right: 8px;">
-                <span style="flex: 1; font-size: 13px; font-weight: bold; color: #1F2937; word-break: break-word;">${projeto.nome}</span>
-                <div style="position: absolute; top: 5px; right: 5px; display: flex; gap: 5px;">
-                  <button onclick="removerProjeto(${projeto.id}, ${isProjetos})" style="background: rgba(255,255,255,0.9); border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px; font-weight: bold;">🗑️</button>
-                </div>
-              </div>
-              <div style="flex: 1; position: relative; border-left: 1px solid #D1D5DB; min-height: ${altura}px; background: #FAFAFA;">
-                ${meses.map((_, idx) => `
-                  <div style="position: absolute; top: 0; bottom: 0; border-right: 1px solid #E5E7EB; left: ${(idx / meses.length) * 100}%; width: ${100 / meses.length}%;"></div>
-                `).join('')}
-                ${projeto.tarefas && projeto.tarefas.length > 0 ? projeto.tarefas.map((tarefa, idx) => `
-                  <div style="
-                    position: absolute;
-                    height: 48px;
-                    border-radius: 6px;
-                    padding: 0 12px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    font-size: 13px;
-                    font-weight: bold;
-                    color: #1F2937;
-                    border: 3px solid rgba(0,0,0,0.15);
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                    background-color: ${getCorPorPercentual(tarefa.percentualEntrega || 0)};
-                    left: ${tarefa.posicaoInicio || 0}%;
-                    width: ${tarefa.largura || 25}%;
-                    top: ${idx * 55 + 10}px;
-                    cursor: move;
-                    user-select: none;
-                    transition: all 0.2s;
-                  " class="tarefa-item" data-projeto-id="${projeto.id}" data-tarefa-id="${tarefa.id}" data-is-projetos="${isProjetos}" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)'; this.style.zIndex='10';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'; this.style.zIndex='1';">
-                    <span style="display: flex; align-items: center; gap: 6px; flex: 1; overflow: hidden;">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; opacity: 0.6;">
-                        <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"></path>
-                      </svg>
-                      <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${tarefa.nome}</span>
-                    </span>
-                    <span onclick="editarPercentual(${projeto.id}, ${tarefa.id}, ${isProjetos})" style="font-weight: bold; margin-left: 8px; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.5)'" onmouseout="this.style.background='transparent'">${tarefa.percentualEntrega || 0}%${(tarefa.percentualEntrega || 0) === 100 ? ' ⭐' : ''}</span>
-                    <button onclick="event.stopPropagation(); removerTarefa(${projeto.id}, ${tarefa.id}, ${isProjetos})" style="position: absolute; top: -8px; right: -8px; background: #EF4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 14px; font-weight: bold; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" class="btn-remove-tarefa">×</button>
+            <div class="projeto-row">
+              <div class="projeto-label" style="background: ${p.cor}; min-height: ${h}px;">${p.nome}</div>
+              <div class="projeto-timeline" style="min-height: ${h}px;">
+                ${meses.map((_, i) => `<div class="mes-col" style="left: ${i*100/meses.length}%; width: ${100/meses.length}%;"></div>`).join('')}
+                ${(p.tarefas||[]).map((t, i) => `
+                  <div class="tarefa-box" style="background: ${getCorPorPercentual(t.percentualEntrega||0)}; left: ${t.posicaoInicio||0}%; width: ${t.largura||25}%; top: ${i*60+10}px;">
+                    <span style="flex: 1; overflow: hidden; text-overflow: ellipsis;">${t.nome}</span>
+                    <span onclick="editarPercentual(${p.id}, ${t.id}, ${isProjetos})" style="cursor: pointer; padding: 5px 10px; background: rgba(255,255,255,0.3); border-radius: 4px;">${t.percentualEntrega||0}%</span>
                   </div>
-                `).join('') : ''}
-                <button onclick="abrirModalTarefa(${projeto.id}, ${isProjetos})" style="position: absolute; top: 10px; right: 10px; background: ${isProjetos ? '#0E76E0' : '#4324C4'}; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: center; opacity: 0.8; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: all 0.2s;" onmouseover="this.style.opacity='1'; this.style.transform='scale(1.1)'" onmouseout="this.style.opacity='0.8'; this.style.transform='scale(1)'">+</button>
+                `).join('')}
+                <button style="position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%; border: none; background: ${isProjetos?'#0E76E0':'#4324C4'}; color: white; cursor: pointer; font-size: 20px;" onclick="abrirModalTarefa(${p.id}, ${isProjetos})">+</button>
               </div>
             </div>
           `;
         });
       }
 
-      container.innerHTML = html;
-      console.log(`${containerId} renderizado com sucesso`);
-      
-      // Adicionar evento de hover para mostrar botão de remover
-      setTimeout(() => {
-        document.querySelectorAll('.tarefa-item').forEach(item => {
-          item.addEventListener('mouseenter', function() {
-            const btn = this.querySelector('.btn-remove-tarefa');
-            if (btn) btn.style.display = 'flex';
-          });
-          item.addEventListener('mouseleave', function() {
-            const btn = this.querySelector('.btn-remove-tarefa');
-            if (btn) btn.style.display = 'none';
-          });
-        });
-      }, 100);
+      el.innerHTML = html;
     }
 
-    // ========================================
-    // FUNÇÕES DE CRUD
-    // ========================================
-    function abrirModalNovoProjeto(isProjetos) {
-      isProjetoList = isProjetos;
+    function abrirModalNovoProjeto(isP) {
+      isProjetoList = isP;
       document.getElementById('inputProjetoNome').value = '';
-      document.getElementById('inputProjetoCor').value = '#FEF3C7';
       document.getElementById('modalProjeto').classList.add('show');
     }
 
     function adicionarProjeto() {
       const nome = document.getElementById('inputProjetoNome').value.trim();
       const cor = document.getElementById('inputProjetoCor').value;
+      if (!nome) return alert('Digite um nome!');
       
-      if (!nome) {
-        alert('Digite um nome para o projeto!');
-        return;
-      }
-
-      const novoProjeto = {
-        id: Date.now(),
-        nome: nome,
-        cor: cor,
-        tarefas: []
-      };
-
-      if (isProjetoList) {
-        projetos.push(novoProjeto);
-      } else {
-        pipeline.push(novoProjeto);
-      }
-
+      const novo = { id: Date.now(), nome, cor, tarefas: [] };
+      (isProjetoList ? projetos : pipeline).push(novo);
       sincronizarComFirebase();
       fecharModal('modalProjeto');
     }
 
-    function removerProjeto(id, isProjetos) {
-      if (!confirm('Deseja realmente remover este projeto?')) return;
-      
-      if (isProjetos) {
-        projetos = projetos.filter(p => p.id !== id);
-      } else {
-        pipeline = pipeline.filter(p => p.id !== id);
-      }
-      sincronizarComFirebase();
-    }
-
-    function abrirModalTarefa(projetoId, isProjetos) {
-      projetoSelecionado = projetoId;
-      isProjetoList = isProjetos;
+    function abrirModalTarefa(pId, isP) {
+      projetoSelecionado = pId;
+      isProjetoList = isP;
       document.getElementById('inputTarefaNome').value = '';
       document.getElementById('modalTarefa').classList.add('show');
     }
 
     function adicionarTarefa() {
       const nome = document.getElementById('inputTarefaNome').value.trim();
+      if (!nome) return alert('Digite um nome!');
       
-      if (!nome) {
-        alert('Digite um nome para a tarefa!');
-        return;
-      }
-
-      const novaTarefa = {
-        id: Date.now(),
-        nome: nome,
-        posicaoInicio: 0,
-        largura: 25,
-        percentualEntrega: 0
-      };
-
       const data = isProjetoList ? projetos : pipeline;
-      const projeto = data.find(p => p.id === projetoSelecionado);
-      if (projeto) {
-        projeto.tarefas.push(novaTarefa);
+      const proj = data.find(p => p.id === projetoSelecionado);
+      if (proj) {
+        if (!proj.tarefas) proj.tarefas = [];
+        proj.tarefas.push({
+          id: Date.now(),
+          nome,
+          posicaoInicio: 0,
+          largura: 28,
+          percentualEntrega: 0
+        });
         sincronizarComFirebase();
       }
-
       fecharModal('modalTarefa');
     }
 
-    function removerTarefa(projetoId, tarefaId, isProjetos) {
-      if (!confirm('Deseja realmente remover esta tarefa?')) return;
+    function editarPercentual(pId, tId, isP) {
+      projetoSelecionado = pId;
+      tarefaSelecionada = tId;
+      isProjetoList = isP;
       
-      const data = isProjetos ? projetos : pipeline;
-      const projeto = data.find(p => p.id === projetoId);
-      if (projeto) {
-        projeto.tarefas = projeto.tarefas.filter(t => t.id !== tarefaId);
-        sincronizarComFirebase();
-      }
-    }
-
-    function editarPercentual(projetoId, tarefaId, isProjetos) {
-      projetoSelecionado = projetoId;
-      tarefaSelecionada = tarefaId;
-      isProjetoList = isProjetos;
-      
-      const data = isProjetos ? projetos : pipeline;
-      const projeto = data.find(p => p.id === projetoId);
-      const tarefa = projeto?.tarefas.find(t => t.id === tarefaId);
+      const data = isP ? projetos : pipeline;
+      const proj = data.find(p => p.id === pId);
+      const tarefa = proj?.tarefas?.find(t => t.id === tId);
       
       if (tarefa) {
-        document.getElementById('inputPercentual').value = tarefa.percentualEntrega;
+        document.getElementById('inputPercentual').value = tarefa.percentualEntrega || 0;
         document.getElementById('modalPercentual').classList.add('show');
       }
     }
 
     function salvarPercentual() {
-      const percentual = parseInt(document.getElementById('inputPercentual').value) || 0;
+      const p = parseInt(document.getElementById('inputPercentual').value) || 0;
+      if (p < 0 || p > 100) return alert('0-100 apenas!');
       
-      if (percentual < 0 || percentual > 100) {
-        alert('O percentual deve estar entre 0 e 100!');
-        return;
-      }
-
       const data = isProjetoList ? projetos : pipeline;
-      const projeto = data.find(p => p.id === projetoSelecionado);
-      const tarefa = projeto?.tarefas.find(t => t.id === tarefaSelecionada);
+      const proj = data.find(p => p.id === projetoSelecionado);
+      const tarefa = proj?.tarefas?.find(t => t.id === tarefaSelecionada);
       
       if (tarefa) {
-        tarefa.percentualEntrega = percentual;
+        tarefa.percentualEntrega = p;
         sincronizarComFirebase();
       }
-
       fecharModal('modalPercentual');
     }
 
-    function fecharModal(modalId) {
-      document.getElementById(modalId).classList.remove('show');
+    function fecharModal(id) {
+      document.getElementById(id).classList.remove('show');
     }
 
-    // Fechar modal ao clicar fora
-    document.querySelectorAll('.modal').forEach(modal => {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.classList.remove('show');
-        }
-      });
-    });
-
-    // ========================================
-    // INICIALIZAÇÃO
-    // ========================================
-    window.addEventListener('DOMContentLoaded', () => {
-      carregarDoFirebase();
-      
-      // Drag and drop básico
-      let tarefaArrastando = null;
-      let offsetX = 0;
-      
-      document.addEventListener('mousedown', (e) => {
-        const tarefa = e.target.closest('.tarefa-item');
-        if (tarefa && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'SPAN') {
-          tarefaArrastando = {
-            elemento: tarefa,
-            projetoId: parseInt(tarefa.dataset.projetoId),
-            tarefaId: parseInt(tarefa.dataset.tarefaId),
-            isProjetos: tarefa.dataset.isProjetos === 'true',
-            startX: e.clientX
-          };
-          offsetX = e.clientX - tarefa.offsetLeft;
-          tarefa.style.opacity = '0.7';
-          tarefa.style.zIndex = '100';
-        }
-      });
-      
-      document.addEventListener('mousemove', (e) => {
-        if (tarefaArrastando) {
-          const container = tarefaArrastando.elemento.parentElement;
-          const containerRect = container.getBoundingClientRect();
-          const newLeft = e.clientX - containerRect.left - offsetX;
-          const percentLeft = (newLeft / containerRect.width) * 100;
-          
-          if (percentLeft >= 0 && percentLeft <= 95) {
-            tarefaArrastando.elemento.style.left = percentLeft + '%';
-          }
-        }
-      });
-      
-      document.addEventListener('mouseup', (e) => {
-        if (tarefaArrastando) {
-          const container = tarefaArrastando.elemento.parentElement;
-          const containerRect = container.getBoundingClientRect();
-          const finalLeft = tarefaArrastando.elemento.offsetLeft;
-          const percentLeft = (finalLeft / containerRect.width) * 100;
-          
-          // Atualizar no Firebase
-          const data = tarefaArrastando.isProjetos ? projetos : pipeline;
-          const projeto = data.find(p => p.id === tarefaArrastando.projetoId);
-          const tarefa = projeto?.tarefas.find(t => t.id === tarefaArrastando.tarefaId);
-          
-          if (tarefa) {
-            tarefa.posicaoInicio = Math.max(0, Math.min(95, percentLeft));
-            sincronizarComFirebase();
-          }
-          
-          tarefaArrastando.elemento.style.opacity = '1';
-          tarefaArrastando.elemento.style.zIndex = '1';
-          tarefaArrastando = null;
-        }
-      });
-    });
+    window.addEventListener('DOMContentLoaded', carregarDoFirebase);
   </script>
 </body>
 </html>
