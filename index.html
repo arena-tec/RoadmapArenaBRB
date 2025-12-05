@@ -158,6 +158,23 @@
       overflow: hidden;
       background: white;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      cursor: grab;
+      transition: all 0.2s;
+    }
+    
+    .projeto-row:active {
+      cursor: grabbing;
+    }
+    
+    .projeto-row.dragging-projeto {
+      opacity: 0.5;
+      transform: scale(0.98);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    .projeto-row.drag-over {
+      border-top: 3px solid #3B82F6;
+      margin-top: 10px;
     }
     
     .projeto-label {
@@ -675,10 +692,10 @@
           <p style="font-size: 16px; margin: 15px 0;">Nenhum projeto</p>
         </div>`;
       } else {
-        data.forEach(p => {
+        data.forEach((p, idx) => {
           const h = Math.max(70, (p.tarefas?.length || 0) * 60 + 20);
           html += `
-            <div class="projeto-row">
+            <div class="projeto-row" draggable="true" data-projeto-id="${p.id}" data-projeto-index="${idx}" data-is-projetos="${isProjetos}">
               <div class="projeto-label" style="background: ${p.cor}; min-height: ${h}px; position: relative; padding-right: 70px;">
                 ${p.nome}
                 <div class="projeto-label-actions">
@@ -884,6 +901,143 @@
           if (btn) btn.style.display = 'none';
         }
       });
+      
+      // Setup drag & drop de projetos
+      setupProjetoDragDrop();
+    }
+
+    // ========================================
+    // DRAG & DROP VERTICAL DE PROJETOS
+    // ========================================
+    let draggedProjetoElement = null;
+    let draggedProjetoId = null;
+    let draggedProjetoIndex = null;
+    let draggedProjetoIsProjetos = null;
+
+    function setupProjetoDragDrop() {
+      document.addEventListener('dragstart', handleProjetoDragStart);
+      document.addEventListener('dragover', handleProjetoDragOver);
+      document.addEventListener('drop', handleProjetoDrop);
+      document.addEventListener('dragend', handleProjetoDragEnd);
+      document.addEventListener('dragenter', handleProjetoDragEnter);
+      document.addEventListener('dragleave', handleProjetoDragLeave);
+    }
+
+    function handleProjetoDragStart(e) {
+      const projetoRow = e.target.closest('.projeto-row');
+      if (!projetoRow) return;
+      
+      // Não permitir drag se clicou em botão ou tarefa
+      if (e.target.closest('button') || e.target.closest('.tarefa-box')) {
+        e.preventDefault();
+        return;
+      }
+      
+      draggedProjetoElement = projetoRow;
+      draggedProjetoId = parseInt(projetoRow.dataset.projetoId);
+      draggedProjetoIndex = parseInt(projetoRow.dataset.projetoIndex);
+      draggedProjetoIsProjetos = projetoRow.dataset.isProjetos === 'true';
+      
+      projetoRow.classList.add('dragging-projeto');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', projetoRow.innerHTML);
+    }
+
+    function handleProjetoDragOver(e) {
+      if (!draggedProjetoElement) return;
+      
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      
+      const projetoRow = e.target.closest('.projeto-row');
+      if (projetoRow && projetoRow !== draggedProjetoElement) {
+        const isProjetos = projetoRow.dataset.isProjetos === 'true';
+        
+        // Só permite drop na mesma lista (projetos com projetos, pipeline com pipeline)
+        if (isProjetos === draggedProjetoIsProjetos) {
+          const rect = projetoRow.getBoundingClientRect();
+          const midpoint = rect.top + rect.height / 2;
+          
+          // Remove classe de todos
+          document.querySelectorAll('.projeto-row').forEach(row => {
+            row.classList.remove('drag-over');
+          });
+          
+          // Adiciona classe no alvo
+          projetoRow.classList.add('drag-over');
+        }
+      }
+    }
+
+    function handleProjetoDragEnter(e) {
+      const projetoRow = e.target.closest('.projeto-row');
+      if (projetoRow && projetoRow !== draggedProjetoElement) {
+        const isProjetos = projetoRow.dataset.isProjetos === 'true';
+        if (isProjetos === draggedProjetoIsProjetos) {
+          projetoRow.classList.add('drag-over');
+        }
+      }
+    }
+
+    function handleProjetoDragLeave(e) {
+      const projetoRow = e.target.closest('.projeto-row');
+      if (projetoRow && !projetoRow.contains(e.relatedTarget)) {
+        projetoRow.classList.remove('drag-over');
+      }
+    }
+
+    function handleProjetoDrop(e) {
+      if (!draggedProjetoElement) return;
+      
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const targetRow = e.target.closest('.projeto-row');
+      if (!targetRow || targetRow === draggedProjetoElement) return;
+      
+      const targetIsProjetos = targetRow.dataset.isProjetos === 'true';
+      
+      // Só permite drop na mesma lista
+      if (targetIsProjetos !== draggedProjetoIsProjetos) return;
+      
+      const targetIndex = parseInt(targetRow.dataset.projetoIndex);
+      const sourceIndex = draggedProjetoIndex;
+      
+      // Reordenar array
+      const data = draggedProjetoIsProjetos ? projetos : pipeline;
+      const [movedItem] = data.splice(sourceIndex, 1);
+      data.splice(targetIndex, 0, movedItem);
+      
+      // Atualizar arrays globais
+      if (draggedProjetoIsProjetos) {
+        projetos = data;
+      } else {
+        pipeline = data;
+      }
+      
+      // Salvar e re-renderizar
+      sincronizarComFirebase();
+      
+      // Limpar classes
+      document.querySelectorAll('.projeto-row').forEach(row => {
+        row.classList.remove('drag-over');
+      });
+    }
+
+    function handleProjetoDragEnd(e) {
+      if (draggedProjetoElement) {
+        draggedProjetoElement.classList.remove('dragging-projeto');
+      }
+      
+      // Limpar todas as classes drag-over
+      document.querySelectorAll('.projeto-row').forEach(row => {
+        row.classList.remove('drag-over');
+      });
+      
+      draggedProjetoElement = null;
+      draggedProjetoId = null;
+      draggedProjetoIndex = null;
+      draggedProjetoIsProjetos = null;
     }
 
     function handleMouseDown(e) {
