@@ -303,6 +303,48 @@
       color: white;
       z-index: 999;
     }
+    
+    /* Scrollbar personalizada */
+    #listaProjetos::-webkit-scrollbar,
+    #listaPipeline::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    #listaProjetos::-webkit-scrollbar-track,
+    #listaPipeline::-webkit-scrollbar-track {
+      background: #F3F4F6;
+      border-radius: 10px;
+    }
+    
+    #listaProjetos::-webkit-scrollbar-thumb,
+    #listaPipeline::-webkit-scrollbar-thumb {
+      background: #D1D5DB;
+      border-radius: 10px;
+    }
+    
+    #listaProjetos::-webkit-scrollbar-thumb:hover,
+    #listaPipeline::-webkit-scrollbar-thumb:hover {
+      background: #9CA3AF;
+    }
+    
+    /* Mostrar botões apenas no hover */
+    .projeto-card:hover .projeto-actions {
+      opacity: 1 !important;
+    }
+    
+    .projeto-label-actions {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .projeto-row:hover .projeto-label-actions {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -339,6 +381,26 @@
       <div style="font-size: 20px; opacity: 0.95; font-weight: 600;">Total Geral de Projetos</div>
       <div class="total-card-value" id="statTotal">0</div>
       <div style="font-size: 16px; opacity: 0.9;"><span id="statTotalDesc">0 em execução + 0 em pipeline</span></div>
+    </div>
+
+    <!-- Lista de Projetos -->
+    <div class="section">
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px;">
+        <div>
+          <h3 style="font-size: 18px; font-weight: 700; color: #1F2937; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">📊</span>
+            Projetos em Execução
+          </h3>
+          <div style="max-height: 280px; overflow-y: auto;" id="listaProjetos"></div>
+        </div>
+        <div>
+          <h3 style="font-size: 18px; font-weight: 700; color: #1F2937; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">🚀</span>
+            Pipeline de Projetos
+          </h3>
+          <div style="max-height: 280px; overflow-y: auto;" id="listaPipeline"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Projetos em Execução -->
@@ -410,6 +472,24 @@
       <div class="modal-actions">
         <button class="btn btn-primary" onclick="salvarPercentual()">Salvar</button>
         <button class="btn" style="background: #6B7280; color: white;" onclick="fecharModal('modalPercentual')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalEditarProjeto" class="modal" onclick="if(event.target===this) fecharModal('modalEditarProjeto')">
+    <div class="modal-content">
+      <h2 class="modal-title">Editar Projeto</h2>
+      <div class="form-group">
+        <label>Nome do Projeto</label>
+        <input type="text" id="inputEditarProjetoNome">
+      </div>
+      <div class="form-group">
+        <label>Cor</label>
+        <input type="color" id="inputEditarProjetoCor" style="height: 50px;">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="salvarEdicaoProjeto()">Salvar</button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick="fecharModal('modalEditarProjeto')">Cancelar</button>
       </div>
     </div>
   </div>
@@ -533,6 +613,42 @@
       document.getElementById('statPipeline').textContent = pipeline.length;
       document.getElementById('statTotal').textContent = projetos.length + pipeline.length;
       document.getElementById('statTotalDesc').textContent = `${projetos.length} em execução + ${pipeline.length} em pipeline`;
+      
+      // Renderizar lista de projetos
+      const listaProjetos = document.getElementById('listaProjetos');
+      if (projetos.length === 0) {
+        listaProjetos.innerHTML = '<p style="color: #9CA3AF; text-align: center; padding: 20px;">Nenhum projeto em execução</p>';
+      } else {
+        listaProjetos.innerHTML = projetos.map((p, i) => `
+          <div class="projeto-card" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background-color: ${p.cor}; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative;">
+            <span style="font-weight: 700; color: #374151; font-size: 14px; min-width: 24px;">${i + 1}.</span>
+            <span style="flex: 1; font-weight: 600; color: #1F2937; font-size: 14px;">${p.nome}</span>
+            ${p.tarefas && p.tarefas.length > 0 ? `<span style="background: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">${p.tarefas.length} tarefa${p.tarefas.length > 1 ? 's' : ''}</span>` : ''}
+            <div class="projeto-actions" style="display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s;">
+              <button onclick="editarProjeto(${p.id}, true)" style="background: rgba(59, 130, 246, 0.9); color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='#3B82F6'" onmouseout="this.style.background='rgba(59, 130, 246, 0.9)'">✏️</button>
+              <button onclick="removerProjeto(${p.id}, true)" style="background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='#EF4444'" onmouseout="this.style.background='rgba(239, 68, 68, 0.9)'">🗑️</button>
+            </div>
+          </div>
+        `).join('');
+      }
+      
+      // Renderizar lista de pipeline
+      const listaPipeline = document.getElementById('listaPipeline');
+      if (pipeline.length === 0) {
+        listaPipeline.innerHTML = '<p style="color: #9CA3AF; text-align: center; padding: 20px;">Nenhum projeto no pipeline</p>';
+      } else {
+        listaPipeline.innerHTML = pipeline.map((p, i) => `
+          <div class="projeto-card" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background-color: ${p.cor}; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative;">
+            <span style="font-weight: 700; color: #374151; font-size: 14px; min-width: 24px;">${i + 1}.</span>
+            <span style="flex: 1; font-weight: 600; color: #1F2937; font-size: 14px;">${p.nome}</span>
+            ${p.tarefas && p.tarefas.length > 0 ? `<span style="background: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">${p.tarefas.length} tarefa${p.tarefas.length > 1 ? 's' : ''}</span>` : ''}
+            <div class="projeto-actions" style="display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s;">
+              <button onclick="editarProjeto(${p.id}, false)" style="background: rgba(59, 130, 246, 0.9); color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='#3B82F6'" onmouseout="this.style.background='rgba(59, 130, 246, 0.9)'">✏️</button>
+              <button onclick="removerProjeto(${p.id}, false)" style="background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='#EF4444'" onmouseout="this.style.background='rgba(239, 68, 68, 0.9)'">🗑️</button>
+            </div>
+          </div>
+        `).join('');
+      }
     }
 
     function renderizarRoadmap(id, data, isProjetos) {
@@ -563,7 +679,13 @@
           const h = Math.max(70, (p.tarefas?.length || 0) * 60 + 20);
           html += `
             <div class="projeto-row">
-              <div class="projeto-label" style="background: ${p.cor}; min-height: ${h}px;">${p.nome}</div>
+              <div class="projeto-label" style="background: ${p.cor}; min-height: ${h}px; position: relative; padding-right: 70px;">
+                ${p.nome}
+                <div class="projeto-label-actions">
+                  <button onclick="editarProjeto(${p.id}, ${isProjetos})" style="background: rgba(59, 130, 246, 0.95); color: white; border: none; border-radius: 4px; padding: 5px 9px; cursor: pointer; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); transition: all 0.2s;" onmouseover="this.style.background='#3B82F6'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.95)'; this.style.transform='scale(1)'">✏️</button>
+                  <button onclick="removerProjeto(${p.id}, ${isProjetos})" style="background: rgba(239, 68, 68, 0.95); color: white; border: none; border-radius: 4px; padding: 5px 9px; cursor: pointer; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); transition: all 0.2s;" onmouseover="this.style.background='#EF4444'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.95)'; this.style.transform='scale(1)'">🗑️</button>
+                </div>
+              </div>
               <div class="projeto-timeline" style="min-height: ${h}px;">
                 ${meses.map((_, i) => `<div class="mes-col" style="left: ${i*100/meses.length}%; width: ${100/meses.length}%;"></div>`).join('')}
                 ${(p.tarefas||[]).map((t, i) => `
@@ -578,7 +700,7 @@
                     <button onclick="event.stopPropagation(); removerTarefa(${p.id}, ${t.id}, ${isProjetos})" style="position: absolute; top: -10px; right: -10px; width: 24px; height: 24px; border-radius: 50%; border: none; background: #EF4444; color: white; cursor: pointer; font-size: 16px; font-weight: bold; display: none; box-shadow: 0 2px 6px rgba(0,0,0,0.3); align-items: center; justify-content: center;" class="btn-remove-tarefa">×</button>
                   </div>
                 `).join('')}
-                <button style="position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%; border: none; background: ${isProjetos?'#0E76E0':'#4324C4'}; color: white; cursor: pointer; font-size: 20px;" onclick="abrirModalTarefa(${p.id}, ${isProjetos})">+</button>
+                <button style="position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%; border: none; background: ${isProjetos?'#0E76E0':'#4324C4'}; color: white; cursor: pointer; font-size: 20px; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: all 0.2s;" onclick="abrirModalTarefa(${p.id}, ${isProjetos})" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">+</button>
               </div>
             </div>
           `;
@@ -603,6 +725,55 @@
       (isProjetoList ? projetos : pipeline).push(novo);
       sincronizarComFirebase();
       fecharModal('modalProjeto');
+    }
+
+    function removerProjeto(pId, isP) {
+      if (!confirm('Deseja realmente remover este projeto? Todas as tarefas serão perdidas.')) return;
+      
+      if (isP) {
+        projetos = projetos.filter(p => p.id !== pId);
+      } else {
+        pipeline = pipeline.filter(p => p.id !== pId);
+      }
+      sincronizarComFirebase();
+    }
+
+    let projetoEditando = null;
+
+    function editarProjeto(pId, isP) {
+      const data = isP ? projetos : pipeline;
+      const projeto = data.find(p => p.id === pId);
+      
+      if (!projeto) return;
+      
+      projetoEditando = { id: pId, isProjetos: isP };
+      document.getElementById('inputEditarProjetoNome').value = projeto.nome;
+      document.getElementById('inputEditarProjetoCor').value = projeto.cor;
+      document.getElementById('modalEditarProjeto').classList.add('show');
+    }
+
+    function salvarEdicaoProjeto() {
+      if (!projetoEditando) return;
+      
+      const novoNome = document.getElementById('inputEditarProjetoNome').value.trim();
+      const novaCor = document.getElementById('inputEditarProjetoCor').value;
+      
+      if (!novoNome) {
+        alert('Digite um nome para o projeto!');
+        return;
+      }
+      
+      const data = projetoEditando.isProjetos ? projetos : pipeline;
+      const projeto = data.find(p => p.id === projetoEditando.id);
+      
+      if (projeto) {
+        projeto.nome = novoNome;
+        projeto.cor = novaCor;
+        sincronizarComFirebase();
+      }
+      
+      projetoEditando = null;
+      fecharModal('modalEditarProjeto');
     }
 
     function abrirModalTarefa(pId, isP) {
